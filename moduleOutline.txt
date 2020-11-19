@@ -1,0 +1,32 @@
+Main Module:
+1. Parse command line
+	a. Set replacement policy based on first arg, default value is FIFO
+	b. Set page size based on third arg, default value is 4096
+	c. Set real memory size based on fifth arg, default value is 1
+	d. Set file name based on sixth arg, if the file name present throw an error
+2. Need to parse file
+	a. Open the file, check that it is not null, if null exit program and throw error	
+	b. Mark the start and end of each process and then insert into data structure on first scan of file
+	c. If page fault, block until there are enough page frames available. Continue to process other unblocked processes
+	c. 
+2. Need to use the tid and vpn to get the ppn
+
+Page Table Module (Essentially red black tree):
+
+ScheduleAlgo Module:
+
+Swap Drive Module:
+
+Statistics Module - called constantly throughout main loop
+a. Create a data structure that keeps track of: clock ticks, page frames occupied, number of processes, running, total number of memory references, total number of page faults 
+b. Create a method that prints out these specific stats, calculated from the stored stats:
+	Average Memory Utilization (AMU):
+		For each clock tick, examine how many pages frames are occupied and average this over each clock tick that the simulator runs.
+	Average Runable Processes (ARP):
+		This value is an average of the number of processes that are running (or runable). This value is averaged over each clock tick for which the simulator runs.
+	Total Memory References (TMR):
+		This is simply a count of the total number of memory references in the trace file.
+	Total Page Ins (TPI):
+		This is the total number of page faults (resulting in disk transfers into memory).
+	Running Time:
+		This is the total number of clock ticks for the simulator run.
