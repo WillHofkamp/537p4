@@ -1,19 +1,34 @@
 Main Module:
+1. Call the parse file module
+2. Free up memory and close the file stream.
+3. Print all stats
+
+Parse File Module:
 1. Parse command line
 	a. Set replacement policy based on first arg, default value is FIFO
 	b. Set page size based on third arg, default value is 4096
 	c. Set real memory size based on fifth arg, default value is 1
 	d. Set file name based on sixth arg, if the file name present throw an error
 2. Need to parse file
-	a. Open the file, check that it is not null, if null exit program and throw error	
-	b. Mark the start and end of each process and then insert into data structure on first scan of file
+	a. Open the file, check that it is not null, if null exit program and throw error
+	b. Loop through file. Mark the start and end of each process aand then insert into data structure on first scan of file 
 	c. If page fault, block until there are enough page frames available. Continue to process other unblocked processes
-	c. 
-2. Need to use the tid and vpn to get the ppn
 
-Page Table Module (Essentially red black tree):
+Page Table Module:
+a. Implement a hash table to store Page structures
+b. Adding from page table
+	i. check if there is page fault or the read is successful (+1 ns)
+	ii. if there is, send to disk queue otherwise add to table (+2 ms)
+c. Removing from page table
+	i. send to disk queue (+2 ms)
 
 ScheduleAlgo Module:
+a. LRU replacement
+	i. Find page with lowest clock time in least recently used
+b. FIFO replacement
+	i. Find page with 
+c. Clock replacement
+	i.
 
 Swap Drive Module:
 
