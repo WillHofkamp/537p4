@@ -1,4 +1,4 @@
-#define _GNU_SOURCE
+ #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +10,9 @@ struct node {
     int key;
     int pid;
 };
+
+int procStart;
+int procEnd;
 
 // This is the compare function for the redblack tree
 // Returns -1 if a <  b
@@ -54,6 +57,12 @@ void add_node(void **root, struct node *node)
 {
     void *result;
     struct node *existing;
+    
+    if(procStart == NULL || node->key < procStart) {
+        procStart = node->key;
+    } else if(procEnd == NULL || node->key > procEnd) {
+        procEnd = node->key;
+    }
 
     if ((result = tsearch(node, root, compare)) == NULL) {
         // Failed to add the node

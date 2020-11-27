@@ -10,10 +10,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fileParser.h"
+#include "tsearch.h"
 
-int replacementPolicy = 0; //1 = FIFO, 2 = LRU, 3 = CLOCK
-int pageSize = 0;
-int memorySize = 0;
+int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
+int pageSize = 4096;
+int memorySize = 1;
 char* fileName;
 
 void parseCommandLine(int argc, const char* argv[]) {
@@ -25,18 +26,22 @@ void parseCommandLine(int argc, const char* argv[]) {
 		}else if(strcmp(argv[0], "537pfsim-clock") {
 			replacementPolicy = 3;
 		}
-		
 		for(int i = 1; i < argc; i++) {
-			if(strcmp(argv[i], "-p") {
+			if(strcmp(argv[i], "-p") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
-				pageSize = argv[i];
-			}else if(strcmp(argv[i], "-m") {
+				pageSize = atoi(argv[i]);
+			}else if(strcmp(argv[i], "-m") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
-				memorySize = argv[i];
+				memorySize = atoi(argv[i]);
 			}else {
 				fileName = argv[i];
 			}
-		} 
+		}
+
+		if(pageSize > memorySize) {
+			fprintf(stderr, "Error: main memory size is lower than page size \n");
+			exit(1);
+		}
 	}
 }
 
@@ -47,16 +52,65 @@ void parseFile(){
 		exit(1);
 	}
 	
+	//one page table (queue) per process
+
+	node* procArr = malloc(100 * sizeof(node));
+
+	int prevPid;
+	int currLineIndex = 0;
+	char* currLine;
 	//first loop, get all pids and start and end of each pid
 	while(!feof(file)) {
-		//if pid isnt in array of processes
+		int currStringIndex = 0;
+		fgets(currLine, currLineIndex, file);
+
+		//skip over prepended empty chars
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
+		}
+
+		//retrieve the PID
+		char* pidString;
+		while(currLine[currStringIndex] != ' ') {
+			if(!isdigit(currLine[currStringIndex])) {
+				fprintf(stderr, "Error: cannot have PID with non-number \n");
+				exit(1);
+			}
+			pidString += currLine[currStringIndex];
+			currStringIndex++;
+		}
+		int currPid = atoi(pidString);
+
+		//skip over more empty chars
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
+		}
+
+		//retrieve the VPN
+		char* vpnString;
+		while(currLine[currStringIndex] != ' ') {
+			if(!isdigit(currLine[currStringIndex])) {
+				fprintf(stderr, "Error: cannot have VPN with non-number \n");
+				exit(1);
+			}
+			vpnString += currLine[currStringIndex];
+			currStringIndex++;
+		}
+		int currVpn = atoi(vpnString);
 		
+		//create a new node from parsed values
+		struct node newNode = malloc(sizeof(node));
+		newNode->key= currVpn;
+		newNode->pid = currPid;
 		
-		//add new process to hash table
-		
-		
-		
-		
+		//check if pid is already in process array
+		if(procArr[currPid] == NULL) {
+			//create new tree if not
+			add_node(newNode, newNode);
+			//increment totProcessNum
+		} else {
+			add_node(procArr[currPid], newNode);
+		}
 	}
 	
 }
