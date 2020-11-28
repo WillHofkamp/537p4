@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fileParser.h"
-#include "tsearch.h"
+#include "redblack_tree.h"
 
 int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
 int pageSize = 4096;
@@ -45,7 +45,7 @@ void parseCommandLine(int argc, const char* argv[]) {
 	}
 }
 
-void parseFile(){
+void parseFile() {
 	File* file = fopen(fileName, "r");
 	if(file == NULL) {
 		fprintf(stderr, "Error: Could not open file\n");
@@ -83,7 +83,7 @@ void parseFile(){
 		while(currLine[currStringIndex] == ' ') {
 			currStringIndex++;
 		}
-
+ 
 		//retrieve the VPN
 		char* vpnString;
 		while(currLine[currStringIndex] != ' ') {
@@ -97,9 +97,10 @@ void parseFile(){
 		int currVpn = atoi(vpnString);
 		
 		//create a new node from parsed values
-		struct node newNode = malloc(sizeof(node));
+		struct rbtree_node newNode = malloc(sizeof(rbtree_node));
 		newNode->key= currVpn;
 		newNode->pid = currPid;
+		newNode->numAccess = 1;
 		
 		//check if pid is already in process array
 		if(procArr[currPid] == NULL || procArr[currPid] == false) {
@@ -108,6 +109,11 @@ void parseFile(){
 			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
 			//increment totProcessNum
 		} else {
+			//check memory in tree
+			//if tree is full, has hit max num nodes
+			//replace(currVpn, currPid);
+
+
 			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
 		}
 	}

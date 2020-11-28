@@ -475,8 +475,10 @@ void rbtree_insert(int key, int pid, size_t size) {
 	}
 	else {
 		rbtree_node* temp_node = search_node(key);
-		if (temp_node->key == key)
+		if (temp_node->key == key) {
+			temp_node->numAccess++;
 			return;
+		}
 
 		rbtree_node *new_node = create_rbtree_node(key, pid, size);
 		new_node->parent = temp_node;
