@@ -54,9 +54,7 @@ void parseFile(){
 	
 	//one page table (queue) per process
 
-	node* procArr = malloc(100 * sizeof(node));
-
-	int prevPid;
+	bool* procArr = malloc(100 * sizeof(bool));
 	int currLineIndex = 0;
 	char* currLine;
 	//first loop, get all pids and start and end of each pid
@@ -104,12 +102,13 @@ void parseFile(){
 		newNode->pid = currPid;
 		
 		//check if pid is already in process array
-		if(procArr[currPid] == NULL) {
+		if(procArr[currPid] == NULL || procArr[currPid] == false) {
 			//create new tree if not
-			add_node(newNode, newNode);
+			procArr[currPid] = true;
+			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
 			//increment totProcessNum
 		} else {
-			add_node(procArr[currPid], newNode);
+			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
 		}
 	}
 	

@@ -10,14 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef PARSE_FILE
-#define PARSE_FILE
-
-typedef struct Process{
-	int* pid;
-	int* start;
-	int* end;
-	int time;
-};
+#define PARSE_FILEs
 
 void parseCommandLine(int argc, const char* argv[]);
 
