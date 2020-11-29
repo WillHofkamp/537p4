@@ -425,13 +425,14 @@ rbtree_node *rbtree_node_search(int key) {
  * :param size: The size of memory allocated
  * :return: A new RBNode
  */
-rbtree_node* create_rbtree_node(int key, int pid, size_t size) {
+rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated, size_t size) {
 	rbtree_node *new_node = (rbtree_node *) malloc(sizeof(rbtree_node));
 	
 	new_node->key = key;
 	new_node->pid = pid;
 	new_node->numAccess = 1;
 	new_node->clockBit = 0;
+	new_node->timeCreated = timeCreated;
 	new_node->size = size;
 	new_node->free = 0;
 	new_node->red = 1;
@@ -464,8 +465,8 @@ rbtree_node *search_node(int key) {
 /**
  * Creates an rbtree
  */
-rbtree_node rbtree_create(int key, int pid, size_t size) {
-	rbtree_node *new_node = create_rbtree_node(key, pid, size);
+rbtree_node rbtree_create(int key, int pid, unsigned long timeCreated, size_t size) {
+	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated, size);
 	new_node->red = 0;
 	root = new_node;
 	return root;
@@ -480,7 +481,7 @@ rbtree_node rbtree_create(int key, int pid, size_t size) {
  * :param key: The starting address of the memory allocated to be inserted in the tree
  * :param size: The size of the memory allocated
  */
-void rbtree_insert(rbtree_node* node, int key, int pid, size_t size) {
+void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size) {
 	root = node;
 
 	rbtree_node* temp_node = search_node(key);
@@ -495,7 +496,7 @@ void rbtree_insert(rbtree_node* node, int key, int pid, size_t size) {
 		return;
 	}
 
-	rbtree_node *new_node = create_rbtree_node(key, pid, size);
+	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated, size);
 	new_node->parent = temp_node;
 
 	if (key < temp_node->key)
@@ -644,6 +645,30 @@ rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node currLeastUses) {
 		}
 
 		searchForLRUHelper(node->children[RIGHT_CHILD], currLeastUses);
+	}
+}
+
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForFIFO(rbtree_node *node) {
+	rbtree_node *temp_node = node;
+	searchForLRUHelper(node, temp_node)
+	return temp_node;
+}
+
+/**
+ * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
+ */
+rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node currLowestTime) {
+	if (node != NULL) {
+		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
+
+		if(currLowestTime->timeCreated > node->timeCreated) {
+			currLowestTime = node;
+		}
+
+		searchForFIFOHelper(node->children[RIGHT_CHILD], currLowestTime);
 	}
 }
 

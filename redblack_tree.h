@@ -16,6 +16,7 @@ typedef struct rbtree_node {
 	int key;
 	int pid;
 	int numAccess;
+	unsigned long timeCreated;
 	int clockBit;
 	size_t size;
 	int free;
@@ -23,7 +24,7 @@ typedef struct rbtree_node {
 } rbtree_node;
 
 rbtree_node rbtree_create(int key, int pid, size_t size);
-void rbtree_insert(rbtree_node* node, int key, int pid, size_t size);
+void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size);
 void rbtree_delete_node(rbtree_node* node, int key);
 
 void rbtree_delete_in_range(int key, size_t size);
