@@ -431,6 +431,7 @@ rbtree_node* create_rbtree_node(int key, int pid, size_t size) {
 	new_node->key = key;
 	new_node->pid = pid;
 	new_node->numAccess = 1;
+  new_node->queueOrder++;
 	new_node->size = size;
 	new_node->free = 0;
 	new_node->red = 1;
@@ -459,6 +460,28 @@ rbtree_node *search_node(int key) {
 
 	return temp_node;
 }
+/**
+ * Searches for a nodes queueOrder and returns it if its found 
+ *
+ */
+rbtree_node *search_node_order(int queueOrder) {
+	rbtree_node *temp_node = root;
+	while (temp_node != NULL) 
+		if (queueOrder < temp_node->queueOrder)
+			if (temp_node->children[LEFT_CHILD] == NULL)
+				break;
+			else
+				temp_node = temp_node->children[LEFT_CHILD];
+		else if (queueOrder == temp_node->queueOrder)
+			break;
+		else
+			if (temp_node->children[RIGHT_CHILD] == NULL)
+				break;
+			else
+				temp_node = temp_node->children[RIGHT_CHILD];
+
+	return temp_node;
+}
 
 rbtree_node rbtree_create(int key, int pid, size_t size) {
 	rbtree_node *new_node = create_rbtree_node(key, pid, size);
@@ -476,7 +499,7 @@ rbtree_node rbtree_create(int key, int pid, size_t size) {
  * :param key: The starting address of the memory allocated to be inserted in the tree
  * :param size: The size of the memory allocated
  */
-void rbtree_insert(rbtree_node* node, int key, int pid, size_t size) {
+void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size) {
 	root = node;
 
 	rbtree_node* temp_node = search_node(key);
