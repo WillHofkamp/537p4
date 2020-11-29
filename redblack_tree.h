@@ -16,7 +16,7 @@ typedef struct rbtree_node {
 	int key;
 	int pid;
 	int numAccess;
-  int queueOrder;
+  	int queueOrder;
 	size_t size;
 	int free;
 	int red;
