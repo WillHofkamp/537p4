@@ -11,7 +11,7 @@
 #ifndef REPLACEMENT_POLICY
 #define REPLACEMENT_POLICY
 
-void replace(int vpn, int pid);
+void replace(rbtree_node *root);
 
 
 #endif

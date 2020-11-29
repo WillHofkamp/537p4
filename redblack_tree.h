@@ -16,7 +16,7 @@ typedef struct rbtree_node {
 	int key;
 	int pid;
 	int numAccess;
-  	int queueOrder;
+	int clockBit;
 	size_t size;
 	int free;
 	int red;
@@ -31,6 +31,8 @@ void rbtree_delete_in_range(int key, size_t size);
 rbtree_node *rbtree_node_search(int key);
 rbtree_node *rbtree_interval_search(int key, int free);
 rbtree_node *rbtree_range_search(int key, size_t size);
+
+rbtree_node *searchForLRU(rbtree_node *node)
 
 // These are used just in the script testing red black tree
 void rbtree_print();
