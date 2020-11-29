@@ -487,7 +487,8 @@ void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreate
 	rbtree_node* temp_node = search_node(key);
 	if (temp_node->key == key) {
 		temp_node->numAccess++;
-		if(temp_node->clockBit) {
+
+		if(temp_node->clockBit == 1) {
 			temp_node->clockBit = 0;	
 		} else {
 			temp_node->clockBit = 1;
@@ -623,6 +624,29 @@ void rbtree_delete_in_range(int key, size_t size) {
 	rbtree_delete_in_range_helper(root, key, size);
 }
 
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForFIFO(rbtree_node *node) {
+	rbtree_node *temp_node = node;
+	searchForFIFOHelper(node, temp_node)
+	return temp_node;
+}
+
+/**
+ * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
+ */
+rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node currLowestTime) {
+	if (node != NULL) {
+		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
+
+		if(currLowestTime->timeCreated > node->timeCreated) {
+			currLowestTime = node;
+		}
+
+		searchForFIFOHelper(node->children[RIGHT_CHILD], currLowestTime);
+	}
+}
 
 /**
  * Initializes a search for the least recently used node
@@ -651,24 +675,24 @@ rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node currLeastUses) {
 /**
  * Initializes a search for the least recently used node
  */
-rbtree_node *searchForFIFO(rbtree_node *node) {
-	rbtree_node *temp_node = node;
-	searchForLRUHelper(node, temp_node)
-	return temp_node;
+rbtree_node *searchForClock(rbtree_node *node) {
+	return searchForClockHelper(node);
 }
 
 /**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node currLowestTime) {
+rbtree_node searchForClockHelper(rbtree_node *node) {
 	if (node != NULL) {
-		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
+		searchForClockHelper(node->children[LEFT_CHILD]);
 
-		if(currLowestTime->timeCreated > node->timeCreated) {
-			currLowestTime = node;
+		if(node->clockBit == 0) {
+			return node;
+		} else {
+			node->clockBit = 0;
 		}
 
-		searchForFIFOHelper(node->children[RIGHT_CHILD], currLowestTime);
+		searchForClockHelper(node->children[RIGHT_CHILD]);
 	}
 }
 
