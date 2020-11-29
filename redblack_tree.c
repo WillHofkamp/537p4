@@ -1,10 +1,11 @@
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Main File: 537make.c
+// This File: 537make.c
+// This File Description: The main file of the program which calls everything to run
 //
-// Authors:		Rohit Kumar Sharma, M. Giri Prasanna
-// NetID:		rsharma54, mugundakrish
-// CSLogin:		rsharma, mgiriprasanna
-// Email:		rsharma@cs.wisc.edu, mugundakrish@wisc.edu
-// Created on:		November 24, 2018
+// Author:           William Hofkamp, Pranet Gowni
+// Email:            hofkamp@wisc.edu, gowni@wisc.edu
+// CS Login:         hofkamp, pranet
 //
 // Resources:		http://www.cs.auckland.ac.nz/software/AlgAnim/red_black.html
 //			https://www.geeksforgeeks.org/red-black-tree-set-1-introduction-2/
@@ -356,7 +357,8 @@ void delete_rbtree_node(rbtree_node *node) {
  * Deletes a node which starts at key and fixes the tree for red black properties
  * :param key: The starting address of the node that is to be deleted
  */
-void rbtree_delete_node(int key) {
+void rbtree_delete_node(rbtree_node* node, int key) {
+	root = node;
 	rbtree_node* node_to_delete = rbtree_node_search(key);
 	if (node_to_delete == NULL) {
 		fprintf(stderr, "Trying to delete a node that doesn't exist! Exiting...\n");
@@ -458,6 +460,13 @@ rbtree_node *search_node(int key) {
 	return temp_node;
 }
 
+rbtree_node rbtree_create(int key, int pid, size_t size) {
+	rbtree_node *new_node = create_rbtree_node(key, pid, size);
+	new_node->red = 0;
+	root = new_node;
+	return root;
+}
+
 /**
  * Creates a new node for key and size and inserts it into the red black tree.
  * The tree follows all the red black properties and hence remains balanced.
@@ -467,29 +476,24 @@ rbtree_node *search_node(int key) {
  * :param key: The starting address of the memory allocated to be inserted in the tree
  * :param size: The size of the memory allocated
  */
-void rbtree_insert(int key, int pid, size_t size) {
-	if (root == NULL) {
-		rbtree_node *new_node = create_rbtree_node(key, pid, size);
-		new_node->red = 0;
-		root = new_node;
+void rbtree_insert(rbtree_node* node, int key, int pid, size_t size) {
+	root = node;
+
+	rbtree_node* temp_node = search_node(key);
+	if (temp_node->key == key) {
+		temp_node->numAccess++;
+		return;
 	}
-	else {
-		rbtree_node* temp_node = search_node(key);
-		if (temp_node->key == key) {
-			temp_node->numAccess++;
-			return;
-		}
 
-		rbtree_node *new_node = create_rbtree_node(key, pid, size);
-		new_node->parent = temp_node;
+	rbtree_node *new_node = create_rbtree_node(key, pid, size);
+	new_node->parent = temp_node;
 
-		if (key < temp_node->key)
-			temp_node->children[LEFT_CHILD] = new_node;
-		else
-			temp_node->children[RIGHT_CHILD] = new_node;
+	if (key < temp_node->key)
+		temp_node->children[LEFT_CHILD] = new_node;
+	else
+		temp_node->children[RIGHT_CHILD] = new_node;
 
-		fix_red_red_node(new_node);
-	}
+	fix_red_red_node(new_node);
 }
 
 /**
