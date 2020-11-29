@@ -11,6 +11,7 @@
 
 #include "fileParser.h"
 #include "redblack_tree.h"
+#include "statsRecorder.h"
 
 int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
 int pageSize = 4096;
@@ -54,7 +55,7 @@ void parseFile() {
 	
 	//one page table (queue) per process
 
-	bool* procArr = malloc(100 * sizeof(bool));
+	bool* procArr = malloc(100 * sizeof(rbtree_node));
 	int currLineIndex = 0;
 	char* currLine;
 	//first loop, get all pids and start and end of each pid
@@ -96,25 +97,17 @@ void parseFile() {
 		}
 		int currVpn = atoi(vpnString);
 		
-		//create a new node from parsed values
-		struct rbtree_node newNode = malloc(sizeof(rbtree_node));
-		newNode->key= currVpn;
-		newNode->pid = currPid;
-		newNode->numAccess = 1;
-		
 		//check if pid is already in process array
 		if(procArr[currPid] == NULL || procArr[currPid] == false) {
 			//create new tree if not
-			procArr[currPid] = true;
-			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
+			procArr[currPid] = rbtree_create(currVpn, currPid, getRT(), sizeof(currVpn) + sizeof(currPid) + sizeof(time));
 			//increment totProcessNum
 		} else {
 			//check memory in tree
 			//if tree is full, has hit max num nodes
 			//replace(currVpn, currPid);
 
-
-			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
+			rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), sizeof(currVpn) + sizeof(currPid) + sizeof(time));
 		}
 	}
 	

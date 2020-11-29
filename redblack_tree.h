@@ -23,7 +23,7 @@ typedef struct rbtree_node {
 	int red;
 } rbtree_node;
 
-rbtree_node rbtree_create(int key, int pid, size_t size);
+rbtree_node rbtree_create(int key, int pid, unsigned long timeCreated, size_t size);
 void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size);
 void rbtree_delete_node(rbtree_node* node, int key);
 

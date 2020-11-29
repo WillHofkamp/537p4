@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Main File: main.c
-// This File: lruReplacementPolicy.c
+// This File: fifoReplacementPolicy.c
 // This File Description: The main file of the program which calls everything to run
 //
 // Author:           William Hofkamp, Pranet Gowni
