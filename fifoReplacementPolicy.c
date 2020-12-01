@@ -17,5 +17,5 @@
 void replace(rbtree_node *root, int pid, int vpn) {
     rbtree_node *temp_node = searchForFIFO(root);
     rbtree_delete_node(root, temp_node->key);
-    rbtree_insert(root, vpn, pid, getRT(), sizeof(vpn) + sizeof(pid) + sizeof(getRT()), false);
+    rbtree_insert(root, vpn, pid, getRT(), false);
 }

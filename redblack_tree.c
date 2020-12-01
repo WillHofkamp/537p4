@@ -372,6 +372,18 @@ rbtree_node* get_rbtree_root() {
 	return root;
 }
 
+void rbtree_free(rbtree_node* node) {
+	if(node == NULL) {
+		return;
+	}
+
+	rbtree_free(node->children[LEFT_CHILD]);
+	rbtree_free(node->children[RIGHT_CHILD]);
+
+	free(node);
+}
+
+
 /**
  * The helper method used by the rbtree_point_search() method
  * :param key: The address that is to be searched

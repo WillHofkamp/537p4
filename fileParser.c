@@ -51,7 +51,7 @@ void parseFile() {
 	}
 
 	//first loop through the file gets all the pids and the final vpns of each process
-	int* totalVpnArr = malloc(100 * sizeof(int));
+	processInfo* totalVpnArr = malloc(100 * sizeof(processInfo));
 	int currLineIndex = 0;
 	char* currLine;
 	while(!feof(file)) {
@@ -75,10 +75,32 @@ void parseFile() {
 		}
 		int currPid = atoi(pidString);
 
+		//skip over more empty chars
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
+		}
+ 
+		//retrieve the VPN
+		char* vpnString;
+		while(currLine[currStringIndex] != ' ') {
+			if(!isdigit(currLine[currStringIndex])) {
+				fprintf(stderr, "Error: cannot have VPN with non-number \n");
+				exit(1);
+			}
+			vpnString += currLine[currStringIndex];
+			currStringIndex++;
+		}
+		int currVpn = atoi(vpnString);
+
 		if(totalVpnArr[currPid] == NULL) {
-			totalVpnArr[currPid] = 1;
+			processInfo *newProc = (processInfo *) malloc(sizeof(processInfo));
+			newProc->finalVpn = currVpn;
+			newProc->totalNumVpn = 1; 
+			totalVpnArr[currPid] = newProc;
 		} else {
-			totalVpnArr[currPid] += 1;
+			processInfo *newProc = totalVpnArr[currPid];
+			newProc->finalVpn = currVpn;
+			newProc->totalNumVpn += 1;
 		}
 		
 		updateTMR(1);
@@ -156,7 +178,11 @@ void parseFile() {
 			}
 			prevPid = currPid;
 			currNumNodes++;
+			totalVpnArr[currPid]->currVpn++;
 			updateTotProcNum(1);
+			if(totalVpnArr[currPid]->currNumVpn == totalVpnArr[currPid]->totalNumVpn) {
+				rbtree_free(proccArr[currPid]);
+			}
 		}
 	}
 	

@@ -12,6 +12,12 @@
 #ifndef PARSE_FILE
 #define PARSE_FILEs
 
+typedef struct processInfo {
+	int finalVpn;
+	int totalNumVpn;
+    int currNumVpn;
+} processInfo;
+
 void parseCommandLine(int argc, const char* argv[]);
 
 void parseFile();
