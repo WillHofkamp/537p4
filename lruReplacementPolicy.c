@@ -10,11 +10,13 @@
 
 #include "redblack_tree.h"
 #include "replacementPolicy.h"
+#include "statsRecorder.h"
 
 /**
  * This will delete the least recently used node with the specified key
  */
-void replace(rbtree_node *root) {
+void replace(rbtree_node *root, int pid, int vpn) {
     rbtree_node *temp_node = searchForLRU(root);
     rbtree_delete_node(root, temp_node->key);
+    rbtree_insert(root, vpn, pid, getRT(), sizeof(vpn) + sizeof(pid) + sizeof(getRT()), false);
 }

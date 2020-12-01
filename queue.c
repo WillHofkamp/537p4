@@ -14,10 +14,11 @@ struct Queue* createQueue() {
 }
 
 // add page to back of queue
-void enqueue(struct Queue* queue, struct rbtree_node* node) {
+void enqueue(struct Queue* queue, unsigned long pid, unsigned long vpn) {
     // Create new page
     struct QueuePage* page = (struct QueuePage*)malloc(sizeof(struct QueuePage));
-    page->node = node;
+    page->pid = pid;
+    page->vpn = vpn;
     page->next = NULL;
     page->previous = NULL;
 
