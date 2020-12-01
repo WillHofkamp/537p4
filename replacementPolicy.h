@@ -13,5 +13,4 @@
 
 void replace(rbtree_node *root);
 
-
 #endif

@@ -24,7 +24,7 @@ typedef struct rbtree_node {
 } rbtree_node;
 
 rbtree_node rbtree_create(int key, int pid, unsigned long timeCreated, size_t size);
-void rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size);
+int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, size_t size, bool maxMemReache);
 void rbtree_delete_node(rbtree_node* node, int key);
 
 void rbtree_delete_in_range(int key, size_t size);

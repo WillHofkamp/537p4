@@ -19,6 +19,9 @@ rbtree_node* currentPids = malloc(sizeof(rbtree_node) * 100);
 void replace(rbtree_node *root) {
     if(currentPids[root->pid] != NULL) {
         rbtree_node *temp_node = searchForClock(currentPids[root->pid]);
+        if(temp_node == NULL) {
+            temp_node = searchForClock(root);
+        }
         rbtree_delete_node(root, temp_node->key);
     } else {
         rbtree_node *temp_node = searchForClock(root);
