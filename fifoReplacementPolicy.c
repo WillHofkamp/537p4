@@ -8,7 +8,6 @@
 // CS Login:         hofkamp, pranet
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "redblack_tree.h"
 #include "replacementPolicy.h"
 
 /**

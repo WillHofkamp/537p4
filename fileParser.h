@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "queue.h"
+#include "replacementPolicy.h"
 
 typedef struct processInfo {
 	int finalVpn;

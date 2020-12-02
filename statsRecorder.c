@@ -8,7 +8,6 @@
 // Email:            hofkamp@wisc.edu, gowni@wisc.edu
 // CS Login:         hofkamp, pranet
 ////////////////////////////////////////////////////////////////////////////////
-#include <time.h>
 
 #include "statsRecorder.h"
 
@@ -16,7 +15,7 @@ int totOccPageFramesNum = 0;
 int totProcessNum = 0;
 int totMemoryRefNum = 0;
 int totPageFaultNum = 0;
-unsigned long clock;
+unsigned long runningTime;
 
 void updateTotOccFrames(int amt) {
 	totOccPageFramesNum += amt;
@@ -35,7 +34,7 @@ void updateTPI(int amt) {
 }
 
 void updateRT(int amt) {
-	clock += amt;
+	runningTime += amt;
 }
 
 int getAMU() {
@@ -43,7 +42,7 @@ int getAMU() {
 }
 
 int getARP() {
-	return totProcessNum/clock;
+	return totProcessNum/runningTime;
 }
 
 int getTMR() {
@@ -55,7 +54,7 @@ int getTPI() {
 }
 
 unsigned long getRT() {
-	return clock;
+	return runningTime;
 }
 
 void printStats(){

@@ -10,14 +10,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fileParser.h"
-#include "redblack_tree.h"
-#include "statsRecorder.h"
-#include "queue.h"
-#include "replacementPolicy.h"
 
 int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
-int pageSize = 4096;
-int memorySize = 1;
+int pageSize = 4096; //bytes
+int memorySize = 1048576; //
 int maxNumNodes;
 int currNumNodes = 0;
 int prevPid;
@@ -32,6 +28,7 @@ void parseCommandLine(int argc, const char* argv[]) {
 			}else if(strcmp(argv[i], "-m") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
 				memorySize = atoi(argv[i]);
+				memorySize = memorySize >> 20;
 			}else {
 				fileName = argv[i];
 			}
@@ -68,7 +65,7 @@ void parseFile() {
 		char* pidString;
 		while(currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
-				fprintf(stderr, "Error: cannot have PID with non-number \n");
+				fprintf(stderr, "Error: cannot have PID with non-number %d\n", currLine[currStringIndex]);
 				exit(1);
 			}
 			pidString += currLine[currStringIndex];

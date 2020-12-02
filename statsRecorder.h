@@ -12,6 +12,9 @@
 #ifndef STATS_RECORDER
 #define STATS_RECORDER
 
+#include <time.h>
+#include <stdio.h>
+
 void updateTotOccFrames(int amt);
 
 void updateTotProcNum(int amt);
