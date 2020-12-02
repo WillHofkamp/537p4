@@ -10,6 +10,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <time.h>
 
+#include "statsRecorder.h"
+
 int totOccPageFramesNum = 0;
 int totProcessNum = 0;
 int totMemoryRefNum = 0;
