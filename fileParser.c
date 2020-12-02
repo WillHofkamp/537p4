@@ -161,7 +161,7 @@ void parseFile() {
 				updateTPI(1);
 			} else {
 				//create new tree if none
-				procArr[currPid] = rbtree_create(currVpn, currPid, getRT());
+				procArr[currPid] = *rbtree_create(currVpn, currPid, getRT());
 				prevPid = currPid;
 				currNumNodes++;
 			}

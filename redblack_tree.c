@@ -477,8 +477,8 @@ rbtree_node *search_node(int key) {
 /**
  * Creates an rbtree
  */
-rbtree_node rbtree_create(int key, int pid, unsigned long timeCreated, size_t size) {
-	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated, size);
+rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
+	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
 	new_node->red = 0;
 	root = new_node;
 	return root;
@@ -506,7 +506,6 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 			temp_node->clockBit = 1;
 		}
 		
-		return;
 	} else if(maxMemReached) {
 		return 0;
 	}
@@ -640,22 +639,13 @@ void rbtree_delete_in_range(int key, size_t size) {
 }
 
 /**
- * Initializes a search for the least recently used node
- */
-rbtree_node *searchForFIFO(rbtree_node *node) {
-	rbtree_node *temp_node = node;
-	searchForFIFOHelper(node, temp_node)
-	return temp_node;
-}
-
-/**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node currLowestTime) {
+rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node *currLowestTime) {
 	if (node != NULL) {
 		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
 
-		if(currLowestTime->timeCreated > node->timeCreated) {
+		if(&currLowestTime->timeCreated > &node->timeCreated) {
 			currLowestTime = node;
 		}
 
@@ -666,20 +656,20 @@ rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node currLowestTime) {
 /**
  * Initializes a search for the least recently used node
  */
-rbtree_node *searchForLRU(rbtree_node *node) {
+rbtree_node *searchForFIFO(rbtree_node *node) {
 	rbtree_node *temp_node = node;
-	searchForLRUHelper(node, temp_node)
+	searchForFIFOHelper(node, temp_node);
 	return temp_node;
 }
 
 /**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node currLeastUses) {
+rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node *currLeastUses) {
 	if (node != NULL) {
 		searchForLRUHelper(node->children[LEFT_CHILD], currLeastUses);
 
-		if(currLeastUses->numAccess > node->numAccess) {
+		if(&currLeastUses->numAccess > &node->numAccess) {
 			currLeastUses = node;
 		}
 
@@ -690,10 +680,10 @@ rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node currLeastUses) {
 /**
  * Initializes a search for the least recently used node
  */
-rbtree_node *searchForClock(rbtree_node *node) {
-	rbtree_node *searchNode = NULL;
-	searchForClockHelper(node, searchNode);
-	return searchNode;
+rbtree_node *searchForLRU(rbtree_node *node) {
+	rbtree_node *temp_node = node;
+	searchForLRUHelper(node, temp_node);
+	return temp_node;
 }
 
 /**
@@ -701,7 +691,7 @@ rbtree_node *searchForClock(rbtree_node *node) {
  */
 rbtree_node searchForClockHelper(rbtree_node *node, rbtree_node *searchNode) {
 	if (node != NULL) {
-		searchForClockHelper(node->children[LEFT_CHILD]);
+		searchForClockHelper(node->children[LEFT_CHILD], searchNode);
 
 		if(node->clockBit == 0) {
 			searchNode = node;
@@ -709,8 +699,18 @@ rbtree_node searchForClockHelper(rbtree_node *node, rbtree_node *searchNode) {
 			node->clockBit = 0;
 		}
 
-		searchForClockHelper(node->children[RIGHT_CHILD]);
+		searchForClockHelper(node->children[RIGHT_CHILD], searchNode);
 	}
+}
+
+
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForClock(rbtree_node *node) {
+	rbtree_node *searchNode = NULL;
+	searchForClockHelper(node, searchNode);
+	return searchNode;
 }
 
 /**
