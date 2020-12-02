@@ -51,21 +51,24 @@ void parseFile() {
 	//first loop through the file gets all the pids and the final vpns of each process
 	processInfo* totalVpnArr = malloc(100 * sizeof(processInfo));
 	int currLineIndex = 0;
-	char* currLine;
+	char* currLine = malloc(sizeof(char*));
+	int currStringIndex = 0;
 	while(!feof(file)) {
-		int currStringIndex = 0;
-		fgets(currLine, currLineIndex, file);
-
+		fgets(currLine, sizeof(char*), file);
 		//skip over prepended empty chars
-		while(currLine[currStringIndex] == ' ') {
-			currStringIndex++;
+		fprintf(stderr, "Error: %c\n", currLine[currStringIndex]);
+
+		if(currLine[currStringIndex] == ' ') {
+			while(currLine[currStringIndex] == ' ') {
+				currStringIndex++;
+			}
 		}
 
 		//retrieve the PID
 		char* pidString;
 		while(currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
-				fprintf(stderr, "Error: cannot have PID with non-number %d\n", currLine[currStringIndex]);
+				fprintf(stderr, "Error: cannot have PID with non-number %d\n", currStringIndex);
 				exit(1);
 			}
 			pidString += currLine[currStringIndex];
@@ -102,14 +105,15 @@ void parseFile() {
 		}
 		
 		updateTMR(1);
+		currLineIndex++;
 	}
 
 	//second pass through actually runs through each process
 	struct Queue *swapDrive = createQueue();
 	rbtree_node* procArr = malloc(100 * sizeof(rbtree_node));
 	currLineIndex = 0;
+	currStringIndex = 0;
 	while(!feof(file)) {
-		int currStringIndex = 0;
 		fgets(currLine, currLineIndex, file);
 
 		//skip over prepended empty chars
