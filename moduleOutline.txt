@@ -48,10 +48,3 @@ b. Create a method that prints out these specific stats, calculated from the sto
 		This is the total number of page faults (resulting in disk transfers into memory).
 	Running Time:
 		This is the total number of clock ticks for the simulator run.
-
-TODO:
-Fix clock algo so that it correctly starts at top of tree after searching through entirety
-Fix AMU so it records average of average
-Free the entire process after its done
-Figure out where to put clock updates and keep track of time correctly
-Refactor rbtree/queue
