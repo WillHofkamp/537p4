@@ -50,28 +50,27 @@ void parseFile() {
 
 	//first loop through the file gets all the pids and the final vpns of each process
 	processInfo* totalVpnArr = malloc(100 * sizeof(processInfo));
-	int currLineIndex = 0;
 	char* currLine = malloc(sizeof(char*));
 	int currStringIndex = 0;
 	while(!feof(file)) {
-		fgets(currLine, sizeof(char*), file);
+		fgets(currLine, 2*sizeof(char*), file);
+		currStringIndex = 0;
+
 		//skip over prepended empty chars
-		fprintf(stderr, "Error: %c\n", currLine[currStringIndex]);
-
-		if(currLine[currStringIndex] == ' ') {
-			while(currLine[currStringIndex] == ' ') {
-				currStringIndex++;
-			}
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
 		}
-
 		//retrieve the PID
-		char* pidString;
-		while(currLine[currStringIndex] != ' ') {
+		char pidString[] = "";
+		int pidStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
-				fprintf(stderr, "Error: cannot have PID with non-number %d\n", currStringIndex);
+				fprintf(stderr, "Error: cannot have PID with non-number\n");
 				exit(1);
 			}
-			pidString += currLine[currStringIndex];
+			pidString[pidStringLen] = currLine[currStringIndex];
+			pidStringLen++;
+			pidString[pidStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currPid = atoi(pidString);
@@ -82,53 +81,52 @@ void parseFile() {
 		}
  
 		//retrieve the VPN
-		char* vpnString;
-		while(currLine[currStringIndex] != ' ') {
+		char vpnString[] = "";
+		int vpnStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
 				fprintf(stderr, "Error: cannot have VPN with non-number \n");
 				exit(1);
 			}
-			vpnString += currLine[currStringIndex];
+			vpnString[vpnStringLen] = currLine[currStringIndex];
+			vpnStringLen++;
+			vpnString[vpnStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currVpn = atoi(vpnString);
 
-		if(&totalVpnArr[currPid] == NULL) {
-			processInfo *newProc = (processInfo *) malloc(sizeof(processInfo));
-			newProc->finalVpn = currVpn;
-			newProc->totalNumVpn = 1; 
-			totalVpnArr[currPid] = *newProc;
-		} else {
+		if(&totalVpnArr[currPid] != NULL) {
 			processInfo *newProc = &totalVpnArr[currPid];
 			newProc->finalVpn = currVpn;
 			newProc->totalNumVpn += 1;
 		}
 		
 		updateTMR(1);
-		currLineIndex++;
 	}
 
 	//second pass through actually runs through each process
 	struct Queue *swapDrive = createQueue();
+	fprintf(stderr, "Error: Created the queue \n");
 	rbtree_node* procArr = malloc(100 * sizeof(rbtree_node));
-	currLineIndex = 0;
-	currStringIndex = 0;
 	while(!feof(file)) {
-		fgets(currLine, currLineIndex, file);
-
+		fgets(currLine, 2*sizeof(char*), file);
+		currStringIndex = 0;
 		//skip over prepended empty chars
 		while(currLine[currStringIndex] == ' ') {
 			currStringIndex++;
 		}
 
 		//retrieve the PID
-		char* pidString;
-		while(currLine[currStringIndex] != ' ') {
+		char pidString[] = "";
+		int pidStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
 				fprintf(stderr, "Error: cannot have PID with non-number \n");
 				exit(1);
 			}
-			pidString += currLine[currStringIndex];
+			pidString[pidStringLen] = currLine[currStringIndex];
+			pidStringLen++;
+			pidString[pidStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currPid = atoi(pidString);
@@ -139,13 +137,16 @@ void parseFile() {
 		}
  
 		//retrieve the VPN
-		char* vpnString;
-		while(currLine[currStringIndex] != ' ') {
+		char vpnString[] = "";
+		int vpnStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
 				fprintf(stderr, "Error: cannot have VPN with non-number \n");
 				exit(1);
 			}
-			vpnString += currLine[currStringIndex];
+			vpnString[vpnStringLen] = currLine[currStringIndex];
+			vpnStringLen++;
+			vpnString[vpnStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currVpn = atoi(vpnString);
