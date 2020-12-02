@@ -13,6 +13,7 @@
 #include "redblack_tree.h"
 #include "statsRecorder.h"
 #include "queue.h"
+#include "replacementPolicy.h"
 
 int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
 int pageSize = 4096;
