@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
+#include <stdbool.h> 
 
 typedef struct rbtree_node {
 	struct rbtree_node *parent;

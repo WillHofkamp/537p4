@@ -8,6 +8,7 @@
 // Email:            hofkamp@wisc.edu, gowni@wisc.edu
 // CS Login:         hofkamp, pranet
 ////////////////////////////////////////////////////////////////////////////////
+#include <time.h>
 
 #include "statsRecorder.h"
 
@@ -38,7 +39,7 @@ void updateRT(int amt) {
 }
 
 int getAMU() {
-	return totOccPageFramesNum/clock;
+	return totOccPageFramesNum/ CLOCKS_PER_SEC;
 }
 
 int getARP() {
