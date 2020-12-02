@@ -45,7 +45,7 @@ void parseCommandLine(int argc, const char* argv[]) {
 }
 
 void parseFile() {
-	File* file = fopen(fileName, "r");
+	FILE* file = fopen(fileName, "r");
 	if(file == NULL) {
 		fprintf(stderr, "Error: Could not open file\n");
 		exit(1);
@@ -93,13 +93,13 @@ void parseFile() {
 		}
 		int currVpn = atoi(vpnString);
 
-		if(totalVpnArr[currPid] == NULL) {
+		if(&totalVpnArr[currPid] == NULL) {
 			processInfo *newProc = (processInfo *) malloc(sizeof(processInfo));
 			newProc->finalVpn = currVpn;
 			newProc->totalNumVpn = 1; 
-			totalVpnArr[currPid] = newProc;
+			totalVpnArr[currPid] = *newProc;
 		} else {
-			processInfo *newProc = totalVpnArr[currPid];
+			processInfo *newProc = &totalVpnArr[currPid];
 			newProc->finalVpn = currVpn;
 			newProc->totalNumVpn += 1;
 		}
@@ -108,9 +108,9 @@ void parseFile() {
 	}
 
 	//second pass through actually runs through each process
-	Queue *swapDrive = createQueue();
+	struct Queue *swapDrive = createQueue();
 	rbtree_node* procArr = malloc(100 * sizeof(rbtree_node));
-	int currLineIndex = 0;
+	currLineIndex = 0;
 	while(!feof(file)) {
 		int currStringIndex = 0;
 		fgets(currLine, currLineIndex, file);
@@ -150,14 +150,14 @@ void parseFile() {
 		int currVpn = atoi(vpnString);
 		
 		//check if pid is already in process array
-		if(procArr[currPid] == NULL || procArr[currPid] == false) {
+		if(&procArr[currPid] == NULL) {
 			//check for page fault before creating
 			if(currNumNodes >= maxNumNodes) {
 				enqueue(swapDrive, currPid, currVpn);
-				QueuePage *swapPage = dequeue(swapDrive);
+				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
-				replace(procArr[prevPid], swapPid, swapVpn);
+				replace(&procArr[prevPid], swapPid, swapVpn);
 				updateTPI(1);
 			} else {
 				//create new tree if none
@@ -168,21 +168,22 @@ void parseFile() {
 			updateTotProcNum(1);
 		} else {
 			//try inserting, then check for page fault
-			if(!rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)); {
+			if(!rbtree_insert(&procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)) {
 				enqueue(swapDrive, currPid, currVpn);
-				QueuePage *swapPage = dequeue(swapDrive);
+				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
-				replace(procArr[currPid], swapPid, swapVpn);
+				replace(&procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);
 			}
 			prevPid = currPid;
 			currNumNodes++;
-			totalVpnArr[currPid]->currVpn++;
 			updateTotProcNum(1);
-			if(totalVpnArr[currPid]->currNumVpn == totalVpnArr[currPid]->totalNumVpn) {
-				rbtree_free(proccArr[currPid]);
+			processInfo *procInfo = &totalVpnArr[currPid];
+			procInfo->currNumVpn++;
+			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+				rbtree_free(&procArr[currPid]);
 			}
 		}
 	}

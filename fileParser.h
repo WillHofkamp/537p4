@@ -12,6 +12,10 @@
 #ifndef PARSE_FILE
 #define PARSE_FILEs
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 typedef struct processInfo {
 	int finalVpn;
 	int totalNumVpn;
