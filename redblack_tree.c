@@ -378,13 +378,14 @@ rbtree_node* get_rbtree_root() {
 	return root;
 }
 
-void rbtree_free(rbtree_node* node) {
+void rbtree_free(rbtree_node* node, int procsFreed) {
 	if(node != NULL) {
-		rbtree_free(node->children[LEFT_CHILD]);
-		rbtree_free(node->children[RIGHT_CHILD]);
+		rbtree_free(node->children[LEFT_CHILD], procsFreed);
+		rbtree_free(node->children[RIGHT_CHILD], procsFreed);
 
 		fprintf(stderr, "current node key %d\n", node->key);
 		free(node);
+		procsFreed++;
 	}
 }
 

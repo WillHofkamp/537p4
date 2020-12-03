@@ -207,7 +207,10 @@ void parseFile() {
 			procInfo->currNumVpn++;
 			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
 				fprintf(stderr, "Freeing the pid: %d\n", currPid);
-				rbtree_free(procArr[currPid]);
+				int procsFreed = 0;
+				rbtree_free(procArr[currPid], procsFreed);
+				procsFreed *= -1;
+				updateRT((int) &procsFreed);
 			}
 		}
 	}

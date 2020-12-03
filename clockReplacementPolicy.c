@@ -10,13 +10,14 @@
 
 #include "replacementPolicy.h"
 
-rbtree_node* currentPids = malloc(sizeof(rbtree_node) * 100);
+rbtree_node** currentPids;
 
 /**
  * This will delete the oldest inserted node with the specified key
  */
 void replace(rbtree_node *root, int pid, int vpn) {
-    if(currentPids[root->pid] != NULL) {
+    currentPids = calloc(100, sizeof(rbtree_node));
+    if(currentPids[root->pid] != 0) {
         rbtree_node *temp_node = searchForClock(currentPids[root->pid]);
         if(temp_node == NULL) {
             temp_node = searchForClock(root);
