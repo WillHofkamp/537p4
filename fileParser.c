@@ -10,22 +10,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "fileParser.h"
-#include "redblack_tree.h"
 
 int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
-int pageSize = 4096;
-int memorySize = 1;
+int pageSize = 4096; //bytes
+int memorySize = 1048576; //
+int maxNumNodes;
+int currNumNodes = 0;
+int prevPid;
 char* fileName;
 
 void parseCommandLine(int argc, const char* argv[]) {
-	if(argc >  1) {
-		if(strcmp(argv[0], "537pfsim-fifo") {
-			replacementPolicy = 1;
-		}else if(strcmp(argv[0], "537pfsim-lru") {
-			replacementPolicy = 2;
-		}else if(strcmp(argv[0], "537pfsim-clock") {
-			replacementPolicy = 3;
-		}
+	if(argc >=  2) {
 		for(int i = 1; i < argc; i++) {
 			if(strcmp(argv[i], "-p") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
@@ -33,48 +28,49 @@ void parseCommandLine(int argc, const char* argv[]) {
 			}else if(strcmp(argv[i], "-m") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
 				memorySize = atoi(argv[i]);
+				memorySize = memorySize >> 20;
 			}else {
 				fileName = argv[i];
 			}
 		}
-
 		if(pageSize > memorySize) {
 			fprintf(stderr, "Error: main memory size is lower than page size \n");
 			exit(1);
 		}
+		maxNumNodes = memorySize/pageSize;
 	}
 }
 
 void parseFile() {
-	File* file = fopen(fileName, "r");
+	FILE* file = fopen(fileName, "r");
 	if(file == NULL) {
 		fprintf(stderr, "Error: Could not open file\n");
 		exit(1);
 	}
-	
-	//one page table (queue) per process
 
-	bool* procArr = malloc(100 * sizeof(bool));
-	int currLineIndex = 0;
-	char* currLine;
-	//first loop, get all pids and start and end of each pid
+	//first loop through the file gets all the pids and the final vpns of each process
+	processInfo** totalVpnArr = calloc(100, sizeof(processInfo));
+	char* currLine = malloc(sizeof(char*));
+	int currStringIndex = 0;
 	while(!feof(file)) {
-		int currStringIndex = 0;
-		fgets(currLine, currLineIndex, file);
+		fgets(currLine, 2*sizeof(char*), file);
+		currStringIndex = 0;
 
 		//skip over prepended empty chars
 		while(currLine[currStringIndex] == ' ') {
 			currStringIndex++;
 		}
-
 		//retrieve the PID
-		char* pidString;
-		while(currLine[currStringIndex] != ' ') {
+		char pidString[] = "";
+		int pidStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
-				fprintf(stderr, "Error: cannot have PID with non-number \n");
+				fprintf(stderr, "Error: cannot have PID with non-number\n");
 				exit(1);
 			}
-			pidString += currLine[currStringIndex];
+			pidString[pidStringLen] = currLine[currStringIndex];
+			pidStringLen++;
+			pidString[pidStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currPid = atoi(pidString);
@@ -85,36 +81,136 @@ void parseFile() {
 		}
  
 		//retrieve the VPN
-		char* vpnString;
-		while(currLine[currStringIndex] != ' ') {
+		char vpnString[] = "";
+		int vpnStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
 			if(!isdigit(currLine[currStringIndex])) {
 				fprintf(stderr, "Error: cannot have VPN with non-number \n");
 				exit(1);
 			}
-			vpnString += currLine[currStringIndex];
+			vpnString[vpnStringLen] = currLine[currStringIndex];
+			vpnStringLen++;
+			vpnString[vpnStringLen] = '\0';
+			currStringIndex++;
+		}
+		int currVpn = atoi(vpnString);
+
+		if(totalVpnArr[currPid] == 0) {
+			processInfo *newProc = malloc(sizeof(processInfo));
+			newProc->finalVpn = currVpn;
+			newProc->totalNumVpn += 1;
+			newProc->currNumVpn = 1;
+			totalVpnArr[currPid] = newProc;
+		} else {
+			processInfo *newProc = totalVpnArr[currPid];
+			newProc->finalVpn = currVpn;
+			newProc->totalNumVpn += 1;
+		}
+		
+		updateTMR(1);
+	}
+
+	//close the file then open again
+	fclose(file);
+	file = fopen(fileName, "r");
+	if(file == NULL) {
+		fprintf(stderr, "Error: Could not open file\n");
+		exit(1);
+	}
+
+	//second pass through actually runs through each process
+	struct Queue *swapDrive = createQueue();
+	rbtree_node** procArr = calloc(100, sizeof(rbtree_node));
+	while(!feof(file)) {
+		fgets(currLine, 2*sizeof(char*), file);
+		currStringIndex = 0;
+		//skip over prepended empty chars
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
+		}
+
+		fprintf(stderr, "Curr line %s\n", currLine);
+
+		//retrieve the PID
+		char pidString[] = "";
+		int pidStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
+			if(!isdigit(currLine[currStringIndex])) {
+				fprintf(stderr, "Error: cannot have PID with non-number\n");
+				exit(1);
+			}
+			pidString[pidStringLen] = currLine[currStringIndex];
+			pidStringLen++;
+			pidString[pidStringLen] = '\0';
+			currStringIndex++;
+		}
+		int currPid = atoi(pidString);
+
+		//skip over more empty chars
+		while(currLine[currStringIndex] == ' ') {
+			currStringIndex++;
+		}
+ 
+		//retrieve the VPN
+		char vpnString[] = "";
+		int vpnStringLen = 0;
+		while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
+			if(!isdigit(currLine[currStringIndex])) {
+				fprintf(stderr, "Error: cannot have VPN with non-number \n");
+				exit(1);
+			}
+			vpnString[vpnStringLen] = currLine[currStringIndex];
+			vpnStringLen++;
+			vpnString[vpnStringLen] = '\0';
 			currStringIndex++;
 		}
 		int currVpn = atoi(vpnString);
 		
-		//create a new node from parsed values
-		struct rbtree_node newNode = malloc(sizeof(rbtree_node));
-		newNode->key= currVpn;
-		newNode->pid = currPid;
-		newNode->numAccess = 1;
-		
 		//check if pid is already in process array
-		if(procArr[currPid] == NULL || procArr[currPid] == false) {
-			//create new tree if not
-			procArr[currPid] = true;
-			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
-			//increment totProcessNum
+
+		if(procArr[currPid] == 0) {
+			//check for page fault before creating
+			if(currNumNodes >= maxNumNodes) {
+				enqueue(swapDrive, currPid, currVpn);
+				struct QueuePage *swapPage = dequeue(swapDrive);
+				int swapVpn = swapPage->vpn;
+				int swapPid = swapPage->pid;
+				replace(procArr[prevPid], swapPid, swapVpn);
+				updateTPI(1);
+			} else {
+				//create new tree if none
+				procArr[currPid] = rbtree_create(currVpn, currPid, getRT());
+				prevPid = currPid;
+				currNumNodes++;
+			}
+			updateTotProcNum(1);
 		} else {
-			//check memory in tree
-			//if tree is full, has hit max num nodes
-			//replace(currVpn, currPid);
-
-
-			rbtree_insert(currVpn, currPid, sizeof(currVpn) + sizeof(currPid));
+			//try inserting, then check for page fault
+			fprintf(stderr, "pid: %d, curr num nodes %d, max nodes %d\n", currPid, currNumNodes, maxNumNodes);
+			int result = rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes);
+			if(result == 0) {
+				enqueue(swapDrive, currPid, currVpn);
+				updateRT(2000000.0); //2ms
+				struct QueuePage *swapPage = dequeue(swapDrive);
+				int swapVpn = swapPage->vpn;
+				int swapPid = swapPage->pid;
+				replace(procArr[currPid], swapPid, swapVpn);
+				currNumNodes--;
+				updateTPI(1);
+			} else if(result == 1) {
+				currNumNodes++;
+			}
+			updateRT(1.0); //1 ns
+			prevPid = currPid;
+			updateTotProcNum(1);
+			processInfo *procInfo = totalVpnArr[currPid];
+			procInfo->currNumVpn++;
+			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+				fprintf(stderr, "Freeing the pid: %d\n", currPid);
+				int procsFreed = 1;
+				rbtree_free(procArr[currPid], &procsFreed);
+				currNumNodes -= procsFreed;
+			}
 		}
 	}
 	

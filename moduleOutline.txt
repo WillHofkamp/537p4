@@ -26,11 +26,14 @@ ScheduleAlgo Module:
 a. LRU replacement
 	i. Find page with lowest clock time in least recently used
 b. FIFO replacement
-	i. Find page with 
+	i. Find page with least amount of times accessed
 c. Clock replacement
-	i.
+	i. Find page with a 0 clock bit, switching any from 1 to 0 along the way. If the end of the tree is reached, restart.
 
 Swap Drive Module:
+a. Queue
+b. Added to the swap drive when there is a page fault. A page fault is when the max num of total nodes is reached and the vpn isnt already in the page table.
+c. Pop from the top of the swap drive when the max node limit is reached. Replacement policy kicks out page, then swap drive page is added
 
 Statistics Module - called constantly throughout main loop
 a. Create a data structure that keeps track of: clock ticks, page frames occupied, number of processes, running, total number of memory references, total number of page faults 

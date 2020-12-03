@@ -12,6 +12,18 @@
 #ifndef PARSE_FILE
 #define PARSE_FILEs
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "queue.h"
+#include "replacementPolicy.h"
+
+typedef struct processInfo {
+	int finalVpn;
+	int totalNumVpn;
+    int currNumVpn;
+} processInfo;
+
 void parseCommandLine(int argc, const char* argv[]);
 
 void parseFile();

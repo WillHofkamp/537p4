@@ -12,24 +12,28 @@
 #ifndef STATS_RECORDER
 #define STATS_RECORDER
 
-typedef struct StatsStruct StatsStruct;
-struct StatsStruct {
-	int totClockTicksNum;
-	int totOccPageFramesNum;
-	int totProcessNum;
-	int totMemoryRefNum;
-	int totPageFaultNum;
-};
+#include <time.h>
+#include <stdio.h>
 
-void updateAMU();
+void updateTotOccFrames(int amt);
 
-void updateARP();
+void updateTotProcNum(int amt);
 
-void updateTMR();
+void updateTMR(int amt);
 
-void updateTPI();
+void updateTPI(int amt);
 
-void updateRT();
+void updateRT(long amt);
+
+int getAMU();
+
+int getARP();
+
+int getTMR();
+
+int getTPI();
+
+unsigned long getRT();
 
 void printStats();
 

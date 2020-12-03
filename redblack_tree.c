@@ -1,10 +1,11 @@
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Main File: 537make.c
+// This File: 537make.c
+// This File Description: The main file of the program which calls everything to run
 //
-// Authors:		Rohit Kumar Sharma, M. Giri Prasanna
-// NetID:		rsharma54, mugundakrish
-// CSLogin:		rsharma, mgiriprasanna
-// Email:		rsharma@cs.wisc.edu, mugundakrish@wisc.edu
-// Created on:		November 24, 2018
+// Author:           William Hofkamp, Pranet Gowni
+// Email:            hofkamp@wisc.edu, gowni@wisc.edu
+// CS Login:         hofkamp, pranet
 //
 // Resources:		http://www.cs.auckland.ac.nz/software/AlgAnim/red_black.html
 //			https://www.geeksforgeeks.org/red-black-tree-set-1-introduction-2/
@@ -13,9 +14,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
 #include "redblack_tree.h"
 
 /**
@@ -32,14 +30,16 @@ rbtree_node *root;
  */
 rbtree_node* uncle_node(rbtree_node *node) {
 	// If no parent or grandparent, then no uncle
-	if (node->parent == NULL || node->parent->parent == NULL)
+	if (node->parent == NULL || node->parent->parent == NULL) {
 		return NULL;
+	}
 	
 	// If the current node is a left chld, then uncle is on right, else left
-	if (node->parent == node->parent->parent->children[LEFT_CHILD])
+	if (node->parent == node->parent->parent->children[LEFT_CHILD]) {
 		return node->parent->parent->children[RIGHT_CHILD];
-	else
+	} else {
 		return node->parent->parent->children[LEFT_CHILD];
+	}
 }
 
 /**
@@ -128,13 +128,18 @@ void fix_red_red_node(rbtree_node* node) {
 		node->red = 0;
 		return;
 	}
-	
 	// Initialize parent, grandparent and uncle
-	rbtree_node *parent = node->parent;
-	rbtree_node *grand_parent = parent->parent;
+	rbtree_node *parent = NULL;
+	if(node->parent != NULL) {
+		parent = node->parent;
+	}
+	rbtree_node *grand_parent = NULL;
+	if(parent != NULL && parent->parent != NULL) {
+		grand_parent = parent->parent;
+	}
 	rbtree_node *uncle = uncle_node(node);
 
-	if (parent->red != 0) {
+	if (parent != NULL && parent->red != 0) {
 		if (uncle != NULL && uncle->red == 1) {
 			// Uncle red, perform recoloring and recurse
 			parent->red = 0;
@@ -144,7 +149,7 @@ void fix_red_red_node(rbtree_node* node) {
 		} 
 		else {
 			// else perform LR, LL, RL, RR
-			if (parent == parent->parent->children[LEFT_CHILD]) {
+			if (grand_parent != NULL && parent == parent->parent->children[LEFT_CHILD]) {
 				if (node == node->parent->children[LEFT_CHILD]) {
 					// for left right
 					swap_colours_nodes(parent, grand_parent);
@@ -160,13 +165,15 @@ void fix_red_red_node(rbtree_node* node) {
 				if (node == node->parent->children[LEFT_CHILD]) {
 					// for right left
 					rotate_rbtree_nodes(parent, RIGHT_CHILD);
-					swap_colours_nodes(node, grand_parent);
+					if(grand_parent != NULL)
+						swap_colours_nodes(node, grand_parent);
 				}
 				else {
 					swap_colours_nodes(parent, grand_parent);
 				}
 				// for right right and right left
-				rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
+				if(grand_parent != NULL)
+					rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
 			}
 		}
 	}
@@ -356,7 +363,8 @@ void delete_rbtree_node(rbtree_node *node) {
  * Deletes a node which starts at key and fixes the tree for red black properties
  * :param key: The starting address of the node that is to be deleted
  */
-void rbtree_delete_node(int key) {
+void rbtree_delete_node(rbtree_node* node, int key) {
+	root = node;
 	rbtree_node* node_to_delete = rbtree_node_search(key);
 	if (node_to_delete == NULL) {
 		fprintf(stderr, "Trying to delete a node that doesn't exist! Exiting...\n");
@@ -370,6 +378,19 @@ rbtree_node* get_rbtree_root() {
 	return root;
 }
 
+void rbtree_free(rbtree_node* node, int *procsFreed) {
+	if(node != NULL) {
+		rbtree_free(node->children[LEFT_CHILD], procsFreed);
+		rbtree_free(node->children[RIGHT_CHILD], procsFreed);
+
+		
+		fprintf(stderr, "current node key %d\n", node->key);
+		free(node);
+		++(*procsFreed);
+	}
+}
+
+
 /**
  * The helper method used by the rbtree_point_search() method
  * :param key: The address that is to be searched
@@ -380,23 +401,27 @@ rbtree_node *node_search_helper(int key, rbtree_node *node) {
 	if (node == NULL) {
 		return NULL;
 	}
-	else if (node->key == NULL) {
-		fprintf(stderr, "Encountered a bad node\n");
-		return NULL;
-	}
-	else if ((node->key == key)) {
-		return node;
-	}
-	else if (node->key > key) {
-		if (node->children[LEFT_CHILD] != NULL) {
-			return node_search_helper(key, node->children[LEFT_CHILD]);
-		}
-	}
+	
 	else {
-		if (node->children[RIGHT_CHILD] != NULL) {
-			return node_search_helper(key, node->children[RIGHT_CHILD]);
+		if (node->key == NULL && node->key != 0) {
+			fprintf(stderr, "Encountered a bad node\n");
+			return NULL;
+		}
+		else if ((node->key == key)) {
+			return node;
+		}
+		else if (node->key > key) {
+			if (node->children[LEFT_CHILD] != NULL) {
+				return node_search_helper(key, node->children[LEFT_CHILD]);
+			}
+		}
+		else {
+			if (node->children[RIGHT_CHILD] != NULL) {
+				return node_search_helper(key, node->children[RIGHT_CHILD]);
+			}
 		}
 	}
+	
 	return NULL;
 }
 
@@ -423,13 +448,14 @@ rbtree_node *rbtree_node_search(int key) {
  * :param size: The size of memory allocated
  * :return: A new RBNode
  */
-rbtree_node* create_rbtree_node(int key, int pid, size_t size) {
+rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated) {
 	rbtree_node *new_node = (rbtree_node *) malloc(sizeof(rbtree_node));
-	
 	new_node->key = key;
 	new_node->pid = pid;
 	new_node->numAccess = 1;
-	new_node->size = size;
+	new_node->clockBit = 0;
+	new_node->timeCreated = timeCreated;
+	new_node->size = sizeof(key) + sizeof(pid) + sizeof(timeCreated);
 	new_node->free = 0;
 	new_node->red = 1;
 	new_node->parent = NULL;
@@ -441,21 +467,35 @@ rbtree_node* create_rbtree_node(int key, int pid, size_t size) {
 
 rbtree_node *search_node(int key) {
 	rbtree_node *temp_node = root;
-	while (temp_node != NULL) 
-		if (key < temp_node->key)
+	while (temp_node != NULL) {
+		if (key < temp_node->key) {
 			if (temp_node->children[LEFT_CHILD] == NULL)
 				break;
 			else
 				temp_node = temp_node->children[LEFT_CHILD];
-		else if (key == temp_node->key)
+		} else if (key == temp_node->key) {
 			break;
-		else
+		}
+		else {
 			if (temp_node->children[RIGHT_CHILD] == NULL)
 				break;
 			else
 				temp_node = temp_node->children[RIGHT_CHILD];
+		}
 
+	}
+		
 	return temp_node;
+}
+
+/**
+ * Creates an rbtree
+ */
+rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
+	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
+	new_node->red = 0;
+	root = new_node;
+	return root;
 }
 
 /**
@@ -467,29 +507,37 @@ rbtree_node *search_node(int key) {
  * :param key: The starting address of the memory allocated to be inserted in the tree
  * :param size: The size of the memory allocated
  */
-void rbtree_insert(int key, int pid, size_t size) {
-	if (root == NULL) {
-		rbtree_node *new_node = create_rbtree_node(key, pid, size);
-		new_node->red = 0;
-		root = new_node;
-	}
-	else {
-		rbtree_node* temp_node = search_node(key);
-		if (temp_node->key == key) {
-			temp_node->numAccess++;
-			return;
+int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached) {
+	root = node;
+	int returnVal = 1;
+
+	rbtree_node* temp_node = search_node(key);
+	if (temp_node->key == key) {
+		temp_node->numAccess++;
+
+		if(temp_node->clockBit == 1) {
+			temp_node->clockBit = 0;	
+		} else {
+			temp_node->clockBit = 1;
 		}
-
-		rbtree_node *new_node = create_rbtree_node(key, pid, size);
-		new_node->parent = temp_node;
-
-		if (key < temp_node->key)
-			temp_node->children[LEFT_CHILD] = new_node;
-		else
-			temp_node->children[RIGHT_CHILD] = new_node;
-
-		fix_red_red_node(new_node);
+		
+		returnVal = 2;
+	} else if(maxMemReached) {
+		returnVal = 0;
+		return returnVal;
 	}
+
+
+	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
+	new_node->parent = temp_node;
+
+	if (key < temp_node->key)
+		temp_node->children[LEFT_CHILD] = new_node;
+	else
+		temp_node->children[RIGHT_CHILD] = new_node;
+
+	fix_red_red_node(new_node);
+	return returnVal;
 }
 
 /**
@@ -606,6 +654,81 @@ void rbtree_delete_in_range_helper(rbtree_node *node, int key, size_t size) {
 
 void rbtree_delete_in_range(int key, size_t size) {
 	rbtree_delete_in_range_helper(root, key, size);
+}
+
+/**
+ * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
+ */
+rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node *currLowestTime) {
+	if (node != NULL) {
+		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
+
+		if(currLowestTime->timeCreated > node->timeCreated) {
+			currLowestTime = node;
+		}
+
+		searchForFIFOHelper(node->children[RIGHT_CHILD], currLowestTime);
+	}
+}
+
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForFIFO(rbtree_node *node) {
+	rbtree_node *temp_node = node;
+	searchForFIFOHelper(node, temp_node);
+	return temp_node;
+}
+
+/**
+ * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
+ */
+rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node *currLeastUses) {
+	if (node != NULL) {
+		searchForLRUHelper(node->children[LEFT_CHILD], currLeastUses);
+
+		if(currLeastUses->numAccess > node->numAccess) {
+			currLeastUses = node;
+		}
+
+		searchForLRUHelper(node->children[RIGHT_CHILD], currLeastUses);
+	}
+}
+
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForLRU(rbtree_node *node) {
+	rbtree_node *temp_node = node;
+	searchForLRUHelper(node, temp_node);
+	return temp_node;
+}
+
+/**
+ * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
+ */
+rbtree_node searchForClockHelper(rbtree_node *node, rbtree_node *searchNode) {
+	if (node != NULL) {
+		searchForClockHelper(node->children[LEFT_CHILD], searchNode);
+
+		if(node->clockBit == 0) {
+			searchNode = node;
+		} else {
+			node->clockBit = 0;
+		}
+
+		searchForClockHelper(node->children[RIGHT_CHILD], searchNode);
+	}
+}
+
+
+/**
+ * Initializes a search for the least recently used node
+ */
+rbtree_node *searchForClock(rbtree_node *node) {
+	rbtree_node *searchNode = NULL;
+	searchForClockHelper(node, searchNode);
+	return searchNode;
 }
 
 /**

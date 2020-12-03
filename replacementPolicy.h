@@ -11,7 +11,9 @@
 #ifndef REPLACEMENT_POLICY
 #define REPLACEMENT_POLICY
 
-void replace(int vpn, int pid);
+#include "redblack_tree.h"
+#include "statsRecorder.h"
 
+void replace(rbtree_node *root, int pid, int vpn);
 
 #endif
