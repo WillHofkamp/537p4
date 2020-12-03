@@ -114,7 +114,7 @@ void parseFile() {
 
 	//second pass through actually runs through each process
 	struct Queue *swapDrive = createQueue();
-	rbtree_node** procArr = calloc(sizeof(100), sizeof(rbtree_node));
+	rbtree_node** procArr = calloc(100, sizeof(rbtree_node));
 	while(!feof(file)) {
 		fgets(currLine, 2*sizeof(char*), file);
 		currStringIndex = 0;
@@ -123,7 +123,7 @@ void parseFile() {
 			currStringIndex++;
 		}
 
-		fprintf(stderr, "Curr line %s \n", currLine);
+		fprintf(stderr, "Curr line %s", currLine);
 
 		//retrieve the PID
 		char pidString[] = "";
@@ -164,8 +164,6 @@ void parseFile() {
 
 		if(procArr[currPid] == 0) {
 			//check for page fault before creating
-			
-			fprintf(stderr, "Failed null check so new proc in tree \n");
 			if(currNumNodes >= maxNumNodes) {
 				enqueue(swapDrive, currPid, currVpn);
 				struct QueuePage *swapPage = dequeue(swapDrive);
@@ -174,8 +172,6 @@ void parseFile() {
 				replace(procArr[prevPid], swapPid, swapVpn);
 				updateTPI(1);
 			} else {
-				
-				fprintf(stderr, "Created new tree \n");
 				//create new tree if none
 				procArr[currPid] = rbtree_create(currVpn, currPid, getRT());
 				prevPid = currPid;
@@ -183,13 +179,13 @@ void parseFile() {
 			}
 			updateTotProcNum(1);
 		} else {
-			fprintf(stderr, "Got past null check so proc in tree \n");
 			//try inserting, then check for page fault
 			if(!rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)) {
 				enqueue(swapDrive, currPid, currVpn);
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
+				fprintf(stderr, "New swap page with vpn: %d, pid: %d\n", swapVpn, swapPid);
 				replace(procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);

@@ -30,14 +30,19 @@ rbtree_node *root;
  */
 rbtree_node* uncle_node(rbtree_node *node) {
 	// If no parent or grandparent, then no uncle
-	if (node->parent == NULL || node->parent->parent == NULL)
+	if (node->parent == NULL || node->parent->parent == NULL) {
+		fprintf(stderr, "Got to no parent or gp, so no uncle\n");
 		return NULL;
+	}
 	
 	// If the current node is a left chld, then uncle is on right, else left
-	if (node->parent == node->parent->parent->children[LEFT_CHILD])
+	if (node->parent == node->parent->parent->children[LEFT_CHILD]) {
+		fprintf(stderr, "Got to uncle on right\n");
 		return node->parent->parent->children[RIGHT_CHILD];
-	else
+	} else {
+		fprintf(stderr, "Got to uncle on left\n");
 		return node->parent->parent->children[LEFT_CHILD];
+	}
 }
 
 /**
@@ -126,13 +131,18 @@ void fix_red_red_node(rbtree_node* node) {
 		node->red = 0;
 		return;
 	}
-	
 	// Initialize parent, grandparent and uncle
-	rbtree_node *parent = node->parent;
-	rbtree_node *grand_parent = parent->parent;
+	rbtree_node *parent = NULL;
+	if(node->parent != NULL) {
+		parent = node->parent;
+	}
+	rbtree_node *grand_parent = NULL;
+	if(parent != NULL && parent->parent != NULL) {
+		grand_parent = parent->parent;
+	}
 	rbtree_node *uncle = uncle_node(node);
 
-	if (parent->red != 0) {
+	if (parent != NULL && parent->red != 0) {
 		if (uncle != NULL && uncle->red == 1) {
 			// Uncle red, perform recoloring and recurse
 			parent->red = 0;
@@ -142,7 +152,7 @@ void fix_red_red_node(rbtree_node* node) {
 		} 
 		else {
 			// else perform LR, LL, RL, RR
-			if (parent == parent->parent->children[LEFT_CHILD]) {
+			if (grand_parent != NULL && parent == parent->parent->children[LEFT_CHILD]) {
 				if (node == node->parent->children[LEFT_CHILD]) {
 					// for left right
 					swap_colours_nodes(parent, grand_parent);
@@ -158,13 +168,15 @@ void fix_red_red_node(rbtree_node* node) {
 				if (node == node->parent->children[LEFT_CHILD]) {
 					// for right left
 					rotate_rbtree_nodes(parent, RIGHT_CHILD);
-					swap_colours_nodes(node, grand_parent);
+					if(grand_parent != NULL)
+						swap_colours_nodes(node, grand_parent);
 				}
 				else {
 					swap_colours_nodes(parent, grand_parent);
 				}
 				// for right right and right left
-				rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
+				if(grand_parent != NULL)
+					rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
 			}
 		}
 	}
@@ -436,7 +448,7 @@ rbtree_node *rbtree_node_search(int key) {
  */
 rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated) {
 	rbtree_node *new_node = (rbtree_node *) malloc(sizeof(rbtree_node));
-	
+	fprintf(stderr, "Created node with key: %d, pid: %d\n", key, pid);
 	new_node->key = key;
 	new_node->pid = pid;
 	new_node->numAccess = 1;
@@ -454,20 +466,24 @@ rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated) {
 
 rbtree_node *search_node(int key) {
 	rbtree_node *temp_node = root;
-	while (temp_node != NULL) 
-		if (key < temp_node->key)
+	while (temp_node != NULL) {
+		if (key < temp_node->key) {
 			if (temp_node->children[LEFT_CHILD] == NULL)
 				break;
 			else
 				temp_node = temp_node->children[LEFT_CHILD];
-		else if (key == temp_node->key)
+		} else if (key == temp_node->key) {
 			break;
-		else
+		}
+		else {
 			if (temp_node->children[RIGHT_CHILD] == NULL)
 				break;
 			else
 				temp_node = temp_node->children[RIGHT_CHILD];
+		}
 
+	}
+		
 	return temp_node;
 }
 
@@ -504,18 +520,24 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 		}
 		
 	} else if(maxMemReached) {
+		fprintf(stderr, "Got into max mem reached in insert \n");
 		return 0;
 	}
+	fprintf(stderr, "Got past the duplicate check \n");
+
 
 	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
 	new_node->parent = temp_node;
+	fprintf(stderr, "Got to node creation \n");
 
 	if (key < temp_node->key)
 		temp_node->children[LEFT_CHILD] = new_node;
 	else
 		temp_node->children[RIGHT_CHILD] = new_node;
 
+	fprintf(stderr, "Got to before fix \n");
 	fix_red_red_node(new_node);
+	fprintf(stderr, "Got to end of insert \n");
 	return 1;
 }
 
