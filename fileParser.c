@@ -169,8 +169,10 @@ void parseFile() {
 		//check if pid is already in process array
 
 		if(procArr[currPid] == 0) {
+			fprintf(stderr, "Got past null check\n");
 			//check for page fault before creating
 			if(currNumNodes >= maxNumNodes) {
+				fprintf(stderr, "Got into memroy check with curr ndoes %d and max %d\n", currNumNodes, maxNumNodes);
 				enqueue(swapDrive, currPid, currVpn);
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
@@ -179,6 +181,7 @@ void parseFile() {
 				updateTPI(1);
 			} else {
 				//create new tree if none
+				fprintf(stderr, "Got past memory check when creating new proc tree\n");
 				procArr[currPid] = rbtree_create(currVpn, currPid, getRT());
 				prevPid = currPid;
 				currNumNodes++;

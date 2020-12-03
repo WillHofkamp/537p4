@@ -379,14 +379,13 @@ rbtree_node* get_rbtree_root() {
 }
 
 void rbtree_free(rbtree_node* node) {
-	if(node == NULL) {
-		return;
+	if(node != NULL) {
+		rbtree_free(node->children[LEFT_CHILD]);
+		rbtree_free(node->children[RIGHT_CHILD]);
+
+		fprintf(stderr, "current node key %d\n", node->key);
+		free(node);
 	}
-
-	rbtree_free(node->children[LEFT_CHILD]);
-	rbtree_free(node->children[RIGHT_CHILD]);
-
-	free(node);
 }
 
 
@@ -683,7 +682,7 @@ rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node *currLeastUses) {
 	if (node != NULL) {
 		searchForLRUHelper(node->children[LEFT_CHILD], currLeastUses);
 
-		if(&currLeastUses->numAccess > &node->numAccess) {
+		if(currLeastUses->numAccess > node->numAccess) {
 			currLeastUses = node;
 		}
 

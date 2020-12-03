@@ -8,9 +8,7 @@
 // CS Login:         hofkamp, pranet
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "redblack_tree.h"
 #include "replacementPolicy.h"
-#include "statsRecorder.h"
 
 /**
  * This will delete the least recently used node with the specified key
