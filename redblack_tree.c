@@ -31,16 +31,13 @@ rbtree_node *root;
 rbtree_node* uncle_node(rbtree_node *node) {
 	// If no parent or grandparent, then no uncle
 	if (node->parent == NULL || node->parent->parent == NULL) {
-		fprintf(stderr, "Got to no parent or gp, so no uncle\n");
 		return NULL;
 	}
 	
 	// If the current node is a left chld, then uncle is on right, else left
 	if (node->parent == node->parent->parent->children[LEFT_CHILD]) {
-		fprintf(stderr, "Got to uncle on right\n");
 		return node->parent->parent->children[RIGHT_CHILD];
 	} else {
-		fprintf(stderr, "Got to uncle on left\n");
 		return node->parent->parent->children[LEFT_CHILD];
 	}
 }
@@ -403,23 +400,27 @@ rbtree_node *node_search_helper(int key, rbtree_node *node) {
 	if (node == NULL) {
 		return NULL;
 	}
-	else if (node->key == NULL) {
-		fprintf(stderr, "Encountered a bad node\n");
-		return NULL;
-	}
-	else if ((node->key == key)) {
-		return node;
-	}
-	else if (node->key > key) {
-		if (node->children[LEFT_CHILD] != NULL) {
-			return node_search_helper(key, node->children[LEFT_CHILD]);
-		}
-	}
+	
 	else {
-		if (node->children[RIGHT_CHILD] != NULL) {
-			return node_search_helper(key, node->children[RIGHT_CHILD]);
+		if (node->key == NULL && node->key != 0) {
+			fprintf(stderr, "Encountered a bad node\n");
+			return NULL;
+		}
+		else if ((node->key == key)) {
+			return node;
+		}
+		else if (node->key > key) {
+			if (node->children[LEFT_CHILD] != NULL) {
+				return node_search_helper(key, node->children[LEFT_CHILD]);
+			}
+		}
+		else {
+			if (node->children[RIGHT_CHILD] != NULL) {
+				return node_search_helper(key, node->children[RIGHT_CHILD]);
+			}
 		}
 	}
+	
 	return NULL;
 }
 
@@ -448,7 +449,6 @@ rbtree_node *rbtree_node_search(int key) {
  */
 rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated) {
 	rbtree_node *new_node = (rbtree_node *) malloc(sizeof(rbtree_node));
-	fprintf(stderr, "Created node with key: %d, pid: %d\n", key, pid);
 	new_node->key = key;
 	new_node->pid = pid;
 	new_node->numAccess = 1;
@@ -520,24 +520,19 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 		}
 		
 	} else if(maxMemReached) {
-		fprintf(stderr, "Got into max mem reached in insert \n");
 		return 0;
 	}
-	fprintf(stderr, "Got past the duplicate check \n");
 
 
 	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
 	new_node->parent = temp_node;
-	fprintf(stderr, "Got to node creation \n");
 
 	if (key < temp_node->key)
 		temp_node->children[LEFT_CHILD] = new_node;
 	else
 		temp_node->children[RIGHT_CHILD] = new_node;
 
-	fprintf(stderr, "Got to before fix \n");
 	fix_red_red_node(new_node);
-	fprintf(stderr, "Got to end of insert \n");
 	return 1;
 }
 
@@ -664,7 +659,7 @@ rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node *currLowestTime) 
 	if (node != NULL) {
 		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
 
-		if(&currLowestTime->timeCreated > &node->timeCreated) {
+		if(currLowestTime->timeCreated > node->timeCreated) {
 			currLowestTime = node;
 		}
 

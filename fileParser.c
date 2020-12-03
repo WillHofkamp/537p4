@@ -20,7 +20,7 @@ int prevPid;
 char* fileName;
 
 void parseCommandLine(int argc, const char* argv[]) {
-	if(argc >  1) {
+	if(argc >=  2) {
 		for(int i = 1; i < argc; i++) {
 			if(strcmp(argv[i], "-p") && argv[i+1] != NULL && isdigit(argv[i+1])) {
 				i++;
@@ -49,7 +49,7 @@ void parseFile() {
 	}
 
 	//first loop through the file gets all the pids and the final vpns of each process
-	processInfo* totalVpnArr = malloc(100 * sizeof(processInfo));
+	processInfo** totalVpnArr = calloc(100, sizeof(processInfo));
 	char* currLine = malloc(sizeof(char*));
 	int currStringIndex = 0;
 	while(!feof(file)) {
@@ -95,8 +95,14 @@ void parseFile() {
 		}
 		int currVpn = atoi(vpnString);
 
-		if(&totalVpnArr[currPid] != NULL) {
-			processInfo *newProc = &totalVpnArr[currPid];
+		if(totalVpnArr[currPid] == 0) {
+			processInfo *newProc = malloc(sizeof(processInfo));
+			newProc->finalVpn = currVpn;
+			newProc->totalNumVpn += 1;
+			newProc->currNumVpn = 1;
+			totalVpnArr[currPid] = newProc;
+		} else {
+			processInfo *newProc = totalVpnArr[currPid];
 			newProc->finalVpn = currVpn;
 			newProc->totalNumVpn += 1;
 		}
@@ -182,20 +188,22 @@ void parseFile() {
 			//try inserting, then check for page fault
 			if(!rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)) {
 				enqueue(swapDrive, currPid, currVpn);
+				updateRT(2000000.0); //2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
-				fprintf(stderr, "New swap page with vpn: %d, pid: %d\n", swapVpn, swapPid);
 				replace(procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);
 			}
+			updateRT(1.0); //1 ns
 			prevPid = currPid;
 			currNumNodes++;
 			updateTotProcNum(1);
-			processInfo *procInfo = &totalVpnArr[currPid];
+			processInfo *procInfo = totalVpnArr[currPid];
 			procInfo->currNumVpn++;
 			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+				fprintf(stderr, "Freeing the pid: %d\n", currPid);
 				rbtree_free(procArr[currPid]);
 			}
 		}

@@ -33,7 +33,7 @@ void updateTPI(int amt) {
 	totPageFaultNum += amt;
 }
 
-void updateRT(int amt) {
+void updateRT(long amt) {
 	runningTime += amt;
 }
 

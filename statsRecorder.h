@@ -23,7 +23,7 @@ void updateTMR(int amt);
 
 void updateTPI(int amt);
 
-void updateRT(int amt);
+void updateRT(long amt);
 
 int getAMU();
 
