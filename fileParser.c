@@ -186,9 +186,7 @@ void parseFile() {
 			updateTotProcNum(1);
 		} else {
 			//try inserting, then check for page fault
-			fprintf(stderr, "pid: %d, curr num nodes %d, max nodes %d\n", currPid, currNumNodes, maxNumNodes);
-			int result = rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes);
-			if(result == 0) {
+			if(!rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)) {
 				enqueue(swapDrive, currPid, currVpn);
 				updateRT(2000000.0); //2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
@@ -197,19 +195,19 @@ void parseFile() {
 				replace(procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);
-			} else if(result == 1) {
-				currNumNodes++;
 			}
 			updateRT(1.0); //1 ns
 			prevPid = currPid;
+			currNumNodes++;
 			updateTotProcNum(1);
 			processInfo *procInfo = totalVpnArr[currPid];
 			procInfo->currNumVpn++;
 			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
 				fprintf(stderr, "Freeing the pid: %d\n", currPid);
-				int procsFreed = 1;
-				rbtree_free(procArr[currPid], &procsFreed);
-				currNumNodes -= procsFreed;
+				int procsFreed = 0;
+				rbtree_free(procArr[currPid], procsFreed);
+				procsFreed *= -1;
+				updateRT((int)&procsFreed);
 			}
 		}
 	}
