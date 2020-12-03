@@ -378,14 +378,15 @@ rbtree_node* get_rbtree_root() {
 	return root;
 }
 
-void rbtree_free(rbtree_node* node, int procsFreed) {
+void rbtree_free(rbtree_node* node, int *procsFreed) {
 	if(node != NULL) {
 		rbtree_free(node->children[LEFT_CHILD], procsFreed);
 		rbtree_free(node->children[RIGHT_CHILD], procsFreed);
 
+		
 		fprintf(stderr, "current node key %d\n", node->key);
 		free(node);
-		procsFreed++;
+		++(*procsFreed);
 	}
 }
 
@@ -508,6 +509,7 @@ rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
  */
 int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached) {
 	root = node;
+	int returnVal = 1;
 
 	rbtree_node* temp_node = search_node(key);
 	if (temp_node->key == key) {
@@ -519,8 +521,10 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 			temp_node->clockBit = 1;
 		}
 		
+		returnVal = 2;
 	} else if(maxMemReached) {
-		return 0;
+		returnVal = 0;
+		return returnVal;
 	}
 
 
@@ -533,7 +537,7 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 		temp_node->children[RIGHT_CHILD] = new_node;
 
 	fix_red_red_node(new_node);
-	return 1;
+	return returnVal;
 }
 
 /**

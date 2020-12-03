@@ -129,7 +129,7 @@ void parseFile() {
 			currStringIndex++;
 		}
 
-		fprintf(stderr, "Curr line %s", currLine);
+		fprintf(stderr, "Curr line %s\n", currLine);
 
 		//retrieve the PID
 		char pidString[] = "";
@@ -169,10 +169,8 @@ void parseFile() {
 		//check if pid is already in process array
 
 		if(procArr[currPid] == 0) {
-			fprintf(stderr, "Got past null check\n");
 			//check for page fault before creating
 			if(currNumNodes >= maxNumNodes) {
-				fprintf(stderr, "Got into memroy check with curr ndoes %d and max %d\n", currNumNodes, maxNumNodes);
 				enqueue(swapDrive, currPid, currVpn);
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
@@ -181,7 +179,6 @@ void parseFile() {
 				updateTPI(1);
 			} else {
 				//create new tree if none
-				fprintf(stderr, "Got past memory check when creating new proc tree\n");
 				procArr[currPid] = rbtree_create(currVpn, currPid, getRT());
 				prevPid = currPid;
 				currNumNodes++;
@@ -189,7 +186,9 @@ void parseFile() {
 			updateTotProcNum(1);
 		} else {
 			//try inserting, then check for page fault
-			if(!rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes)) {
+			fprintf(stderr, "pid: %d, curr num nodes %d, max nodes %d\n", currPid, currNumNodes, maxNumNodes);
+			int result = rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes);
+			if(result == 0) {
 				enqueue(swapDrive, currPid, currVpn);
 				updateRT(2000000.0); //2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
@@ -198,19 +197,19 @@ void parseFile() {
 				replace(procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);
+			} else if(result == 1) {
+				currNumNodes++;
 			}
 			updateRT(1.0); //1 ns
 			prevPid = currPid;
-			currNumNodes++;
 			updateTotProcNum(1);
 			processInfo *procInfo = totalVpnArr[currPid];
 			procInfo->currNumVpn++;
 			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
 				fprintf(stderr, "Freeing the pid: %d\n", currPid);
-				int procsFreed = 0;
-				rbtree_free(procArr[currPid], procsFreed);
-				procsFreed *= -1;
-				updateRT((int) &procsFreed);
+				int procsFreed = 1;
+				rbtree_free(procArr[currPid], &procsFreed);
+				currNumNodes -= procsFreed;
 			}
 		}
 	}
