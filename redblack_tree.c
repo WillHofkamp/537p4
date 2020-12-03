@@ -520,9 +520,7 @@ int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated
 			temp_node->clockBit = 1;
 		}
 		
-		returnVal = 2;
 	} else if(maxMemReached) {
-		returnVal = 0;
 		return 0;
 	}
 
