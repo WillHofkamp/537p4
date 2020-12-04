@@ -512,7 +512,7 @@ rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
  * :param key: The starting address of the memory allocated to be inserted in the tree
  * :param size: The size of the memory allocated
  */
-rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached) {
+rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool nonFault) {
 	root = node;
 
 	rbtree_node* temp_node = search_node(key, node);
@@ -527,22 +527,19 @@ rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long ti
 		
 		root->insertResult = 2;
 		return root;
-	} else if(maxMemReached) {
-		root->insertResult = 0;
-		return root;
+	} else if(nonFault) {
+		rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
+		new_node->parent = temp_node;
+
+		if (key < temp_node->key)
+			temp_node->children[LEFT_CHILD] = new_node;
+		else
+			temp_node->children[RIGHT_CHILD] = new_node;
+
+		fix_red_red_node(new_node);
+		root->insertResult = 1;
 	}
-
-
-	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
-	new_node->parent = temp_node;
-
-	if (key < temp_node->key)
-		temp_node->children[LEFT_CHILD] = new_node;
-	else
-		temp_node->children[RIGHT_CHILD] = new_node;
-
-	fix_red_red_node(new_node);
-	root->insertResult = 1;
+	root->insertResult = 0;
 	return root;
 }
 

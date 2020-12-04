@@ -5,9 +5,9 @@
 struct QueuePage {
     unsigned long pid;
     unsigned long vpn;
+    unsigned long timeCreated;
     struct QueuePage* next;
     struct QueuePage* previous;
-    void* memory_ref;
 };
 
 struct Queue {
@@ -17,7 +17,7 @@ struct Queue {
 
 struct Queue* createQueue();
 
-void enqueue(struct Queue* queue, unsigned long pid, unsigned long vpn);
+void enqueue(struct Queue* queue, unsigned long pid, unsigned long vpn, unsigned long timeCreated);
 
 struct QueuePage* dequeue(struct Queue* queue);
 

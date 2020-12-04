@@ -20,8 +20,13 @@
 
 typedef struct processInfo {
 	int finalVpn;
+	long firstLineOffset;
+	long finalLineOffset;
+	long currLineOffset;
 	int totalNumVpn;
     int currNumVpn;
+	int blocked;
+	rbtree_node* tree;
 } processInfo;
 
 void parseCommandLine(int argc, const char* argv[]);

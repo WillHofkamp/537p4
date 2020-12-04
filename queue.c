@@ -14,11 +14,12 @@ struct Queue* createQueue() {
 }
 
 // add page to back of queue
-void enqueue(struct Queue* queue, unsigned long pid, unsigned long vpn) {
+void enqueue(struct Queue* queue, unsigned long pid, unsigned long vpn, unsigned long timeCreated) {
     // Create new page
     struct QueuePage* page = (struct QueuePage*)malloc(sizeof(struct QueuePage));
     page->pid = pid;
     page->vpn = vpn;
+    page->timeCreated = timeCreated;
     page->next = NULL;
     page->previous = NULL;
 
