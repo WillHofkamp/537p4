@@ -24,11 +24,12 @@ typedef struct rbtree_node {
 	size_t size;
 	int free;
 	int red;
+	int insertResult;
 } rbtree_node;
 
 rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated);
-int rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached);
-void rbtree_delete_node(rbtree_node* node, int key);
+rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached);
+rbtree_node* rbtree_delete_node(rbtree_node* node, int key);
 void rbtree_delete_in_range(int key, size_t size);
 void rbtree_free(rbtree_node* node, int *procsFreed);
 

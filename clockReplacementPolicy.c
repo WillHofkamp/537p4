@@ -15,7 +15,7 @@ rbtree_node** currentPids;
 /**
  * This will delete the oldest inserted node with the specified key
  */
-void replace(rbtree_node *root, int pid, int vpn) {
+rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
     currentPids = calloc(100, sizeof(rbtree_node));
     if(currentPids[root->pid] != 0) {
         rbtree_node *temp_node = searchForClock(currentPids[root->pid]);

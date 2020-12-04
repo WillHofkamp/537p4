@@ -11,9 +11,8 @@
 
 #include "fileParser.h"
 
-int replacementPolicy = 1; //1 = FIFO, 2 = LRU, 3 = CLOCK
 int pageSize = 4096; //bytes
-int memorySize = 1048576; //
+int memorySize = 1048576; //mb
 int maxNumNodes;
 int currNumNodes = 0;
 int prevPid;
@@ -129,7 +128,7 @@ void parseFile() {
 			currStringIndex++;
 		}
 
-		fprintf(stderr, "Curr line %s\n", currLine);
+		fprintf(stderr, "\n Curr line %s\n", currLine);
 
 		//retrieve the PID
 		char pidString[] = "";
@@ -187,14 +186,16 @@ void parseFile() {
 		} else {
 			//try inserting, then check for page fault
 			fprintf(stderr, "pid: %d, curr num nodes %d, max nodes %d\n", currPid, currNumNodes, maxNumNodes);
-			int result = rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes);
+			procArr[currPid] = rbtree_insert(procArr[currPid], currVpn, currPid, getRT(), currNumNodes >= maxNumNodes);
+			int result = procArr[currPid]->insertResult;
+			is_red_black_tree();
 			if(result == 0) {
 				enqueue(swapDrive, currPid, currVpn);
 				updateRT(2000000.0); //2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
-				replace(procArr[currPid], swapPid, swapVpn);
+				procArr[currPid] = replace(procArr[currPid], swapPid, swapVpn);
 				currNumNodes--;
 				updateTPI(1);
 			} else if(result == 1) {

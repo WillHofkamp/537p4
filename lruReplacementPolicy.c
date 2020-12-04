@@ -13,8 +13,9 @@
 /**
  * This will delete the least recently used node with the specified key
  */
-void replace(rbtree_node *root, int pid, int vpn) {
+rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
     rbtree_node *temp_node = searchForLRU(root);
-    rbtree_delete_node(root, temp_node->key);
-    rbtree_insert(root, vpn, pid, getRT(), false);
+    root = rbtree_delete_node(root, temp_node->key);
+    root = rbtree_insert(root, vpn, pid, getRT(), false);
+    return root;
 }
