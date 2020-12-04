@@ -122,11 +122,10 @@ void parseFile() {
 
 	//second pass through actually runs through each process
 	struct Queue *swapDrive = createQueue();
-	int consecutiveNull = 0;
 	int currentArrayIndex = 0;
 	int blockedCount = 0;
 	rbtree_node** procArr = calloc(100, sizeof(rbtree_node));
-	while(consecutiveNull < 100) {
+	while(totalProgCount != 0) {
 		if(currentArrayIndex >= 100) {
 			currentArrayIndex = 0;
 		}
@@ -150,9 +149,7 @@ void parseFile() {
 					} else {
 						fprintf(stderr, "Got to insert non root %d\n", swapPage->pid);
 						procArr[swapPage->pid] = rbtree_insert(procArr[swapPage->pid], swapPage->vpn, swapPage->pid, swapPage->timeCreated, true);
-						if(procArr[swapPage->pid]->insertResult == 1) {
-							currNumNodes++;
-						}	
+						
 					}
 					procInfo->currNumVpn++;
 				}
@@ -164,6 +161,7 @@ void parseFile() {
 					totalVpnArr[swapPage->pid] = 0;
 					procArr[swapPage->pid] = 0;
 					currNumNodes -= procsFreed;
+					totalProgCount--;
 				}
 				updateRT(1.0); //1 ns
 				prevPid = swapPage->pid;
@@ -172,10 +170,7 @@ void parseFile() {
 				blockedCount--;
 			}
 		}
-		if(totalVpnArr[currentArrayIndex] == NULL || totalVpnArr[currentArrayIndex] == 0) {
-			consecutiveNull++;
-		} else if(totalVpnArr[currentArrayIndex] != 0) {
-			consecutiveNull = 0;
+		if((totalVpnArr[currentArrayIndex] != NULL || totalVpnArr[currentArrayIndex] != 0) && (totalVpnArr[currentArrayIndex]->currLineOffset <= totalVpnArr[currentArrayIndex]->finalLineOffset)) {
 			if(!totalVpnArr[currentArrayIndex]->blocked) {
 				file = fopen(fileName, "r");
 				if(file == NULL) {
@@ -245,7 +240,7 @@ void parseFile() {
 						totalVpnArr[currentArrayIndex] = 0;
 						procArr[currentArrayIndex] = 0;
 						currNumNodes -= procsFreed;
-						
+						totalProgCount--;
 					}
 				} else if(procArr[currentArrayIndex] == NULL) {
 					fprintf(stderr, "Got to new tree\n");
@@ -276,6 +271,7 @@ void parseFile() {
 							totalVpnArr[currentArrayIndex] = 0;
 							procArr[currentArrayIndex] = 0;
 							currNumNodes -= procsFreed;
+							totalProgCount--;
 						}
 					}
 				}
@@ -297,4 +293,5 @@ void parseFile() {
 	free(swapDrive);
 	free(currLine);
 	printStats();
+	exit(1);
 }
