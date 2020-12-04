@@ -258,6 +258,7 @@ void parseFile() {
 						updateTotProcNum(1);
 						totalVpnArr[currentArrayIndex]->blocked=1;
 						blockedCount++;
+						updateTPI(1);
 					} else if(result == 2) {
 						updateRT(1.0); //1 ns
 						prevPid = currentArrayIndex;
