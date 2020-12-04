@@ -84,13 +84,10 @@ int node_has_red_child(rbtree_node* node) {
  */
 void rotate_rbtree_nodes(rbtree_node* node, int direction) {
 		rbtree_node *temp_node = node->children[(direction + 1) % 2];
-		fprintf(stderr, "rotating node %d, temp_node %d\n", node->key, temp_node->key);
 		// Update root if current node is the root
 		if (node == root) {
-			fprintf(stderr, "rotating node is the root\n");
 			root = temp_node;
 		}
-		fprintf(stderr, "current root in rotate after setting temp node to root %d\n", root->key);
 
 		move_node_down(node, temp_node);
 	
@@ -140,59 +137,46 @@ void fix_red_red_node(rbtree_node* node) {
 	rbtree_node *parent = node->parent;
 	if(parent->parent != NULL) {
 		rbtree_node *grand_parent = parent->parent;
-		fprintf(stderr, "before fixing grandparent %d color %d,parent %d color %d, node %d color %d\n", grand_parent->key, grand_parent->red, parent->key, parent->red, node->key, node->red);
-	rbtree_node *uncle = uncle_node(node);
+		rbtree_node *uncle = uncle_node(node);
 
-	if (parent->red != 0) {
-		if (uncle != NULL && uncle->red == 1) {
-			fprintf(stderr, "uncle %d color %d\n", uncle->key, uncle->red);
-			// Uncle red, perform recoloring and recurse
-			parent->red = 0;
-			uncle->red = 0;
-			grand_parent->red = 1;
-			if(grand_parent->parent != NULL) {
-				fix_red_red_node(grand_parent);
-			}
-		} 
-		else {
-			fprintf(stderr, "Perform LR, LL, RL, RR\n");
-			// else perform LR, LL, RL, RR
-			if (parent == parent->parent->children[LEFT_CHILD]) {
-				fprintf(stderr, "if parent is the left child of grandparent\n");
-				if (node == node->parent->children[LEFT_CHILD]) {
-					fprintf(stderr, "if node is left child of parent\n");
-					// for left right
-					swap_colours_nodes(parent, grand_parent);
+		if (parent->red != 0) {
+			if (uncle != NULL && uncle->red == 1) {
+				// Uncle red, perform recoloring and recurse
+				parent->red = 0;
+				uncle->red = 0;
+				grand_parent->red = 1;
+				if(grand_parent->parent != NULL) {
+					fix_red_red_node(grand_parent);
 				}
-				else {
-					fprintf(stderr, "node is right child of parent\n");
-					rotate_rbtree_nodes(parent, LEFT_CHILD);
-					swap_colours_nodes(node,grand_parent);
-				}
-				fprintf(stderr, "Get to rotation for LL and LR\n");
-				// for left left and left right
-				rotate_rbtree_nodes(grand_parent, RIGHT_CHILD);
-			}
+			} 
 			else {
-				fprintf(stderr, "if parent is the right child of grandparent\n");
-				if (node == node->parent->children[LEFT_CHILD]) {
-					fprintf(stderr, "if node is the left child of parent\n");
-					// for right left
-					rotate_rbtree_nodes(parent, RIGHT_CHILD);
-					swap_colours_nodes(node, grand_parent);
+				// else perform LR, LL, RL, RR
+				if (parent == parent->parent->children[LEFT_CHILD]) {
+					if (node == node->parent->children[LEFT_CHILD]) {
+						// for left right
+						swap_colours_nodes(parent, grand_parent);
+					}
+					else {
+						rotate_rbtree_nodes(parent, LEFT_CHILD);
+						swap_colours_nodes(node,grand_parent);
+					}
+					// for left left and left right
+					rotate_rbtree_nodes(grand_parent, RIGHT_CHILD);
 				}
 				else {
-					fprintf(stderr, "node is the right child of the parent\n");
-					swap_colours_nodes(parent, grand_parent);
+					if (node == node->parent->children[LEFT_CHILD]) {
+						// for right left
+						rotate_rbtree_nodes(parent, RIGHT_CHILD);
+						swap_colours_nodes(node, grand_parent);
+					}
+					else {
+						swap_colours_nodes(parent, grand_parent);
+					}
+					// for right right and right left
+					rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
 				}
-				fprintf(stderr, "Get to rotation for RR and RL\n");
-				// for right right and right left
-				rotate_rbtree_nodes(grand_parent, LEFT_CHILD);
-				fprintf(stderr, "after fixing grandparent %d color %d,parent %d color %d, node %d color %d\n", grand_parent->key, grand_parent->red, parent->key, parent->red, node->key, node->red);
-				fprintf(stderr, "before fixing root %d color %d\n", root->key, root->red);
 			}
-		}
-	}	
+		}	
 	}
 }
 
@@ -402,8 +386,6 @@ void rbtree_free(rbtree_node* node, int *procsFreed) {
 		rbtree_free(node->children[LEFT_CHILD], procsFreed);
 		rbtree_free(node->children[RIGHT_CHILD], procsFreed);
 
-		
-		fprintf(stderr, "current node key %d\n", node->key);
 		free(node);
 		++(*procsFreed);
 	}
@@ -487,14 +469,11 @@ rbtree_node* create_rbtree_node(int key, int pid, unsigned long timeCreated) {
 
 rbtree_node *search_node(int key, rbtree_node *node) {
 	if(node != NULL) {
-		fprintf(stderr, "key %d and curr node key %d\n", key, node->key);
 		int currKey = node->key;
 		if (currKey == key) {
-			fprintf(stderr, "Found key %d\n", key);
 			return node;
 		}
 		else if (key < currKey && node->children[LEFT_CHILD] != NULL) {
-			fprintf(stderr, "Left child %d, key %d, node key is %d\n", node->children[LEFT_CHILD]->key, key, node->key);
 			rbtree_node* temp_node = search_node(key, node->children[LEFT_CHILD]);
 			if(temp_node == NULL) {
 				return node;
@@ -503,7 +482,6 @@ rbtree_node *search_node(int key, rbtree_node *node) {
 			}
 		}
 		else if (key > currKey && node->children[RIGHT_CHILD] != NULL) {
-			fprintf(stderr, "Right child %d, looking for key %d, node key is %d\n", node->children[RIGHT_CHILD]->key, key, node->key);
 			rbtree_node* temp_node = search_node(key, node->children[RIGHT_CHILD]);
 			if(temp_node == NULL) {
 				return node;
@@ -522,7 +500,6 @@ rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
 	rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
 	new_node->red = 0;
 	root = new_node;
-	fprintf(stderr, "create rbtree for pid %d with key %d \n", pid, key);
 	return root;
 }
 
@@ -537,11 +514,8 @@ rbtree_node* rbtree_create(int key, int pid, unsigned long timeCreated) {
  */
 rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long timeCreated, bool maxMemReached) {
 	root = node;
-	int returnVal = 1;
 
-	fprintf(stderr, "before search curr key %d \n", root->key);
 	rbtree_node* temp_node = search_node(key, node);
-	fprintf(stderr, "after search temp_node key: %d, and curr key %d \n", temp_node->key, key);
 	if (temp_node->key == key) {
 		temp_node->numAccess++;
 
@@ -568,7 +542,6 @@ rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long ti
 		temp_node->children[RIGHT_CHILD] = new_node;
 
 	fix_red_red_node(new_node);
-	fprintf(stderr, "Root key after fix %d\n", root->key);
 	root->insertResult = 1;
 	return root;
 }
