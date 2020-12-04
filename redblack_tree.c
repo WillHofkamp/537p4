@@ -517,7 +517,6 @@ rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long ti
 
 	rbtree_node* temp_node = search_node(key, node);
 	if (temp_node->key == key) {
-		fprintf(stderr, "--Got into duplicate insert\n");
 		temp_node->numAccess++;
 
 		if(temp_node->clockBit == 1) {
@@ -529,7 +528,6 @@ rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long ti
 		root->insertResult = 2;
 		return root;
 	} else if(nonFault) {
-		fprintf(stderr, "--Got into nonfault insert\n");
 		rbtree_node *new_node = create_rbtree_node(key, pid, timeCreated);
 		new_node->parent = temp_node;
 
@@ -540,6 +538,7 @@ rbtree_node* rbtree_insert(rbtree_node* node, int key, int pid, unsigned long ti
 
 		fix_red_red_node(new_node);
 		root->insertResult = 1;
+		return root;
 	}
 	root->insertResult = 0;
 	return root;

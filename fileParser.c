@@ -177,7 +177,6 @@ void parseFile() {
 				}
 				//fseek to the line offset
 				int currFileIndex = 0;
-				fprintf(stderr, "pid %d and line offset %ld\n", currentArrayIndex, totalVpnArr[currentArrayIndex]->currLineOffset);
 				while(!feof(file) && (currFileIndex < totalVpnArr[currentArrayIndex]->currLineOffset)) {
 					fgets(currLine, 2*sizeof(char*), file);
 					currFileIndex++;
@@ -213,8 +212,6 @@ void parseFile() {
 				}
 				int currVpn = atoi(vpnString);
 
-				fprintf(stderr, "Parsed vpn %d for pid %d\n", currVpn, currentArrayIndex);
-
 				//check if pid is already in process array
 				if(procArr[currentArrayIndex] == NULL) {
 					fprintf(stderr, "Enqueue a completely new process\n");
@@ -234,25 +231,28 @@ void parseFile() {
 						totalVpnArr[currentArrayIndex]->blocked=1;
 						blockedCount++;
 					} else if(result == 2) {
-						fprintf(stderr, "Got to duplicate \n");
 						updateRT(1.0); //1 ns
 						prevPid = currentArrayIndex;
 						processInfo *procInfo = totalVpnArr[currentArrayIndex];
 						procInfo->currNumVpn++;
+						fprintf(stderr, "Got to duplicate, curr num vpn %d and total num vpn %d\n", procInfo->currNumVpn, procInfo->totalNumVpn);
 						if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+							fprintf(stderr, "Got into freeing proc %d\n", currentArrayIndex);
 							int procsFreed = 0;
 							rbtree_free(procArr[currentArrayIndex], &procsFreed);
 							totalVpnArr[currentArrayIndex] = 0;
+							procArr[currentArrayIndex] = 0;
 							currNumNodes -= procsFreed;
 						}
 					}
 				}
-				totalVpnArr[currentArrayIndex]->currLineOffset++;
+				if(totalVpnArr[currentArrayIndex] != 0) {
+					totalVpnArr[currentArrayIndex]->currLineOffset++;
+				}	
 				fclose(file);
 			} else {
 				if(totalProgCount == blockedCount) {
 					unsigned long currTimeDiff = (getRT()-peek(swapDrive)->timeCreated) - 1.0;
-					fprintf(stderr, "add curr time diff %ld \n", currTimeDiff);
 					updateRT((2000000.0 - currTimeDiff));
 				}
 			}
