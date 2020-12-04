@@ -118,6 +118,8 @@ void parseFile() {
 		updateTMR(1);
 	}
 
+	fclose(file);
+
 	//second pass through actually runs through each process
 	struct Queue *swapDrive = createQueue();
 	int consecutiveNull = 0;
@@ -129,43 +131,48 @@ void parseFile() {
 			currentArrayIndex = 0;
 		}
 		//check if there is stuff to remove from swap drive
-		
 		if(peek(swapDrive) != NULL) {
 			int timeCheck = 2000000.0 <= (getRT()-peek(swapDrive)->timeCreated);
 			//fprintf(stderr, "peek time %ld, curr rt %ld, time diff %ld, time check %d\n", peek(swapDrive)->timeCreated, getRT(), (getRT()-peek(swapDrive)->timeCreated), timeCheck);
 			if(timeCheck) {
 				//if the top of the queue has been in there for 2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
+				processInfo *procInfo = totalVpnArr[swapPage->pid];
 				if(procArr[swapPage->pid] == NULL){
 					fprintf(stderr, "create tree from swap with pid %ld and vpn %ld\n", swapPage->pid, swapPage->vpn);
 					procArr[swapPage->pid] = rbtree_create(swapPage->vpn, swapPage->pid, swapPage->timeCreated);
 				} else {
-					fprintf(stderr, "add node to tree, pid %ld, vpn %ld \n", swapPage->pid, swapPage->vpn);
+					fprintf(stderr, "add node to tree, pid %ld, vpn %ld, curr num nodes %d, max num nodes %d \n", swapPage->pid, swapPage->vpn, currNumNodes, maxNumNodes);
 					if(currNumNodes >= maxNumNodes) {
+						fprintf(stderr, "Got to replacement pid %d\n", swapPage->pid);
 						procArr[swapPage->pid] = replace(procArr[swapPage->pid], swapPage->pid, swapPage->pid, swapPage->timeCreated);
+						procInfo->currNumVpn--;
 					} else {
+						fprintf(stderr, "Got to insert non root %d\n", swapPage->pid);
 						procArr[swapPage->pid] = rbtree_insert(procArr[swapPage->pid], swapPage->vpn, swapPage->pid, swapPage->timeCreated, true);
 						if(procArr[swapPage->pid]->insertResult == 1) {
 							currNumNodes++;
 						}	
 					}
-					processInfo *procInfo = totalVpnArr[swapPage->pid];
 					procInfo->currNumVpn++;
-					if(procInfo->currNumVpn == procInfo->totalNumVpn) {
-						int procsFreed = 0;
-						rbtree_free(procArr[swapPage->pid], &procsFreed);
-						currNumNodes -= procsFreed;
-					}
+				}
+				totalVpnArr[swapPage->pid]->blocked=0;
+				if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+					fprintf(stderr, " SWAP FREEING pid %d\n", swapPage->pid);
+					int procsFreed = 0;
+					rbtree_free(procArr[swapPage->pid], &procsFreed);
+					totalVpnArr[swapPage->pid] = 0;
+					procArr[swapPage->pid] = 0;
+					currNumNodes -= procsFreed;
 				}
 				updateRT(1.0); //1 ns
 				prevPid = swapPage->pid;
 				updateTotProcNum(1);
 				currNumNodes++;
-				totalVpnArr[swapPage->pid]->blocked=0;
 				blockedCount--;
 			}
 		}
-		if(totalVpnArr[currentArrayIndex] == 0) {
+		if(totalVpnArr[currentArrayIndex] == NULL || totalVpnArr[currentArrayIndex] == 0) {
 			consecutiveNull++;
 		} else if(totalVpnArr[currentArrayIndex] != 0) {
 			consecutiveNull = 0;
@@ -176,12 +183,15 @@ void parseFile() {
 					exit(1);
 				}
 				//fseek to the line offset
+				fprintf(stderr, "Pre file line search array index %ld\n", totalVpnArr[currentArrayIndex]->currLineOffset);
 				int currFileIndex = 0;
 				while(!feof(file) && (currFileIndex < totalVpnArr[currentArrayIndex]->currLineOffset)) {
 					fgets(currLine, 2*sizeof(char*), file);
 					currFileIndex++;
 				}
-				fprintf(stderr, "%s\n", currLine);
+				fprintf(stderr, "Post file line search file index %d\n", currFileIndex);
+				fprintf(stderr, "\n %s\n", currLine);
+				fprintf(stderr, "curr pid %d, curr num nodes %d, max num nodes %d \n", currentArrayIndex, currNumNodes, maxNumNodes);
 				//parse its vpn
 				currStringIndex = 0;
 
@@ -189,10 +199,21 @@ void parseFile() {
 				while(currLine[currStringIndex] == ' ') {
 					currStringIndex++;
 				}
-				//skip the PID
+				//retrieve the PID
+				char pidString[] = "";
+				int pidStringLen = 0;
 				while(currLine[currStringIndex] != '\n' && currLine[currStringIndex] != ' ') {
+					if(!isdigit(currLine[currStringIndex])) {
+						fprintf(stderr, "Error: cannot have PID with non-number\n");
+						exit(1);
+					}
+					pidString[pidStringLen] = currLine[currStringIndex];
+					pidStringLen++;
+					pidString[pidStringLen] = '\0';
 					currStringIndex++;
 				}
+				int currPid = atoi(pidString);
+
 				//skip over more empty chars
 				while(currLine[currStringIndex] == ' ') {
 					currStringIndex++;
@@ -212,16 +233,28 @@ void parseFile() {
 				}
 				int currVpn = atoi(vpnString);
 
+				fprintf(stderr, "curr pid %d, curr vpn %d, curr num nodes %d, max num nodes %d \n", currentArrayIndex, currVpn, currNumNodes, maxNumNodes);
 				//check if pid is already in process array
-				if(procArr[currentArrayIndex] == NULL) {
-					fprintf(stderr, "Enqueue a completely new process\n");
+				if(currPid != currentArrayIndex) {
+					processInfo *procInfo = totalVpnArr[currentArrayIndex];
+					if(procInfo->currNumVpn == procInfo->totalNumVpn) {
+						fprintf(stderr, "OUT OF SYNCH FREEING proc %d\n", currentArrayIndex);
+						totalVpnArr[currentArrayIndex]->currLineOffset--;
+						int procsFreed = 0;
+						rbtree_free(procArr[currentArrayIndex], &procsFreed);
+						totalVpnArr[currentArrayIndex] = 0;
+						procArr[currentArrayIndex] = 0;
+						currNumNodes -= procsFreed;
+						
+					}
+				} else if(procArr[currentArrayIndex] == NULL) {
+					fprintf(stderr, "Got to new tree\n");
 					enqueue(swapDrive, currentArrayIndex, currVpn, getRT());
 					updateTotProcNum(1);
 					totalVpnArr[currentArrayIndex]->blocked=1;
 					blockedCount++;
 				} else {
 					//try inserting, then check for page fault
-					fprintf(stderr, "curr num nodes %d, max num nodes %d \n", currNumNodes, maxNumNodes);
 					procArr[currentArrayIndex] = rbtree_insert(procArr[currentArrayIndex], currVpn, currentArrayIndex, getRT(), false);
 					int result = procArr[currentArrayIndex]->insertResult;
 					if(result == 0) {
@@ -237,7 +270,7 @@ void parseFile() {
 						procInfo->currNumVpn++;
 						fprintf(stderr, "Got to duplicate, curr num vpn %d and total num vpn %d\n", procInfo->currNumVpn, procInfo->totalNumVpn);
 						if(procInfo->currNumVpn == procInfo->totalNumVpn) {
-							fprintf(stderr, "Got into freeing proc %d\n", currentArrayIndex);
+							fprintf(stderr, "DUP FREEING proc %d\n", currentArrayIndex);
 							int procsFreed = 0;
 							rbtree_free(procArr[currentArrayIndex], &procsFreed);
 							totalVpnArr[currentArrayIndex] = 0;
