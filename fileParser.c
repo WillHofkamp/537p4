@@ -16,7 +16,7 @@ int memorySize = 1048576; //mb
 int maxNumNodes;
 int currNumNodes = 0;
 int prevPid;
-int totalProcCount = 0;
+int totalProgCount = 0;
 char* fileName;
 
 void parseCommandLine(int argc, const char* argv[]) {
@@ -107,7 +107,7 @@ void parseFile() {
 			newProc->firstLineOffset = currLineOffset;
 			newProc->currLineOffset = currLineOffset;
 			totalVpnArr[currPid] = newProc;
-			totalProcCount++;
+			totalProgCount++;
 		} else {
 			processInfo *newProc = totalVpnArr[currPid];
 			newProc->finalVpn = currVpn;
@@ -122,35 +122,25 @@ void parseFile() {
 	struct Queue *swapDrive = createQueue();
 	int consecutiveNull = 0;
 	int currentArrayIndex = 0;
-	int totalBlockedCount = 0;
-	int skipTime = 0;
+	int blockedCount = 0;
 	rbtree_node** procArr = calloc(100, sizeof(rbtree_node));
 	while(consecutiveNull < 100) {
 		if(currentArrayIndex >= 100) {
 			currentArrayIndex = 0;
-			if(totalBlockedCount == totalProcCount) {
-				skipTime = 1;
-			}
 		}
 		//check if there is stuff to remove from swap drive
 		
 		if(peek(swapDrive) != NULL) {
-			int timeCheck = 2000000.0 == (getRT()-peek(swapDrive)->timeCreated);
-			fprintf(stderr, "peek time %ld, curr rt %ld, time diff %ld, time check %d\n", peek(swapDrive)->timeCreated, getRT(), (getRT()-peek(swapDrive)->timeCreated), timeCheck);
-			if(timeCheck || skipTime) {
-				skipTime = 0;
-				fprintf(stderr, "Got past swap drive check\n");
+			int timeCheck = 2000000.0 <= (getRT()-peek(swapDrive)->timeCreated);
+			//fprintf(stderr, "peek time %ld, curr rt %ld, time diff %ld, time check %d\n", peek(swapDrive)->timeCreated, getRT(), (getRT()-peek(swapDrive)->timeCreated), timeCheck);
+			if(timeCheck) {
 				//if the top of the queue has been in there for 2ms
-				fprintf(stderr, "Swapping context\n");
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				if(procArr[swapPage->pid] == NULL){
-					fprintf(stderr, "creat tree from swap \n");
-					procArr[swapPage->pid] = rbtree_create(swapPage->pid, swapPage->vpn, swapPage->timeCreated);
-					currNumNodes++;
-					totalVpnArr[currentArrayIndex]->blocked=0;
-					totalBlockedCount--;
+					fprintf(stderr, "create tree from swap with pid %ld and vpn %ld\n", swapPage->pid, swapPage->vpn);
+					procArr[swapPage->pid] = rbtree_create(swapPage->vpn, swapPage->pid, swapPage->timeCreated);
 				} else {
-					fprintf(stderr, "curr num nodes %d, max num nodes %d \n", currNumNodes, maxNumNodes);
+					fprintf(stderr, "add node to tree, pid %ld, vpn %ld \n", swapPage->pid, swapPage->vpn);
 					if(currNumNodes >= maxNumNodes) {
 						procArr[swapPage->pid] = replace(procArr[swapPage->pid], swapPage->pid, swapPage->pid, swapPage->timeCreated);
 					} else {
@@ -159,11 +149,6 @@ void parseFile() {
 							currNumNodes++;
 						}	
 					}
-					totalVpnArr[currentArrayIndex]->blocked=0;
-					totalBlockedCount--;
-					updateRT(1.0); //1 ns
-					prevPid = swapPage->pid;
-					updateTotProcNum(1);
 					processInfo *procInfo = totalVpnArr[swapPage->pid];
 					procInfo->currNumVpn++;
 					if(procInfo->currNumVpn == procInfo->totalNumVpn) {
@@ -172,17 +157,19 @@ void parseFile() {
 						currNumNodes -= procsFreed;
 					}
 				}
+				updateRT(1.0); //1 ns
+				prevPid = swapPage->pid;
+				updateTotProcNum(1);
+				currNumNodes++;
+				totalVpnArr[swapPage->pid]->blocked=0;
+				blockedCount--;
 			}
 		}
 		if(totalVpnArr[currentArrayIndex] == 0) {
 			consecutiveNull++;
 		} else if(totalVpnArr[currentArrayIndex] != 0) {
-			fprintf(stderr, "Non null\n");
 			consecutiveNull = 0;
 			if(!totalVpnArr[currentArrayIndex]->blocked) {
-				fprintf(stderr, "Not blocked\n");
-				
-
 				file = fopen(fileName, "r");
 				if(file == NULL) {
 					fprintf(stderr, "Error: Could not open file\n");
@@ -234,7 +221,7 @@ void parseFile() {
 					enqueue(swapDrive, currentArrayIndex, currVpn, getRT());
 					updateTotProcNum(1);
 					totalVpnArr[currentArrayIndex]->blocked=1;
-					totalBlockedCount++;
+					blockedCount++;
 				} else {
 					//try inserting, then check for page fault
 					fprintf(stderr, "curr num nodes %d, max num nodes %d \n", currNumNodes, maxNumNodes);
@@ -245,7 +232,7 @@ void parseFile() {
 						enqueue(swapDrive, currentArrayIndex, currVpn, getRT());
 						updateTotProcNum(1);
 						totalVpnArr[currentArrayIndex]->blocked=1;
-						totalBlockedCount++;
+						blockedCount++;
 					} else if(result == 2) {
 						fprintf(stderr, "Got to duplicate \n");
 						updateRT(1.0); //1 ns
@@ -262,6 +249,12 @@ void parseFile() {
 				}
 				totalVpnArr[currentArrayIndex]->currLineOffset++;
 				fclose(file);
+			} else {
+				if(totalProgCount == blockedCount) {
+					unsigned long currTimeDiff = (getRT()-peek(swapDrive)->timeCreated) - 1.0;
+					fprintf(stderr, "add curr time diff %ld \n", currTimeDiff);
+					updateRT((2000000.0 - currTimeDiff));
+				}
 			}
 		}
 		currentArrayIndex++;
