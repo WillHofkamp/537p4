@@ -14,6 +14,6 @@
 #include "redblack_tree.h"
 #include "statsRecorder.h"
 
-rbtree_node* replace(rbtree_node *root, int pid, int vpn, unsigned long timeCreated);
+rbtree_node* replace(rbtree_node *root, unsigned long pid, unsigned long vpn, unsigned long timeCreated);
 
 #endif
