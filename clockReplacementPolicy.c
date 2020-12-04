@@ -15,7 +15,7 @@ rbtree_node** currentPids;
 /**
  * This will delete the oldest inserted node with the specified key
  */
-rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
+rbtree_node* replace(rbtree_node *root, unsigned long pid, unsigned long vpn, unsigned long timeCreated) {
     currentPids = calloc(100, sizeof(rbtree_node));
     if(currentPids[root->pid] != 0) {
         rbtree_node *temp_node = searchForClock(currentPids[root->pid]);
@@ -23,13 +23,13 @@ rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
             temp_node = searchForClock(root);
         }
         root = rbtree_delete_node(root, temp_node->key);
-        root = rbtree_insert(root, vpn, pid, getRT(), false);
+        root = rbtree_insert(root, vpn, pid, timeCreated, true);
         return root;
     } else {
         rbtree_node *temp_node = searchForClock(root);
         currentPids[root->pid] = temp_node; 
         root = rbtree_delete_node(root, temp_node->key);
-        root = rbtree_insert(root, vpn, pid, getRT(), false);
+        root = rbtree_insert(root, vpn, pid, timeCreated, true);
         return root;
     }
     

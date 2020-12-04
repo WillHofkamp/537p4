@@ -13,10 +13,10 @@
 /**
  * This will delete the oldest inserted node with the specified key
  */
-rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
+rbtree_node* replace(rbtree_node *root, unsigned long pid, unsigned long vpn, unsigned long timeCreated) {
+    //fprintf(stderr, "GOT TO REPLACEMENT POLICY with pid %d, vpn %d\n");
     rbtree_node *temp_node = searchForFIFO(root);
-    fprintf(stderr, "DELETEing the key: %d\n", temp_node->key);
     root = rbtree_delete_node(root, temp_node->key);
-    root = rbtree_insert(root, vpn, pid, getRT(), false);
+    root = rbtree_insert(root, vpn, pid, timeCreated, true);
     return root;
 }

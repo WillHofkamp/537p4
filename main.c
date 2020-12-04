@@ -16,7 +16,5 @@ int main(int argc, const char* argv[]) {
 	
 	parseCommandLine(argc, argv);
 	parseFile();
-	fprintf(stderr, "Parsed through file\n");
-	printStats();
 	
 }
