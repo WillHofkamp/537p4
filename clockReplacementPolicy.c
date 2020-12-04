@@ -22,13 +22,15 @@ rbtree_node* replace(rbtree_node *root, int pid, int vpn) {
         if(temp_node == NULL) {
             temp_node = searchForClock(root);
         }
-        rbtree_delete_node(root, temp_node->key);
-        rbtree_insert(root, vpn, pid, getRT(), false);
+        root = rbtree_delete_node(root, temp_node->key);
+        root = rbtree_insert(root, vpn, pid, getRT(), false);
+        return root;
     } else {
         rbtree_node *temp_node = searchForClock(root);
         currentPids[root->pid] = temp_node; 
-        rbtree_delete_node(root, temp_node->key);
-        rbtree_insert(root, vpn, pid, getRT(), false);
+        root = rbtree_delete_node(root, temp_node->key);
+        root = rbtree_insert(root, vpn, pid, getRT(), false);
+        return root;
     }
     
 }

@@ -187,7 +187,7 @@ void parseFile() {
 			int result = procArr[currPid]->insertResult;
 			if(result == 0) {
 				enqueue(swapDrive, currPid, currVpn);
-				updateRT(2000000.0); //2ms
+				updateRT(2000001.0); //2ms
 				struct QueuePage *swapPage = dequeue(swapDrive);
 				int swapVpn = swapPage->vpn;
 				int swapPid = swapPage->pid;
@@ -202,14 +202,16 @@ void parseFile() {
 			processInfo *procInfo = totalVpnArr[currPid];
 			procInfo->currNumVpn++;
 			if(procInfo->currNumVpn == procInfo->totalNumVpn) {
-				int procsFreed = 1;
+				int procsFreed = 0;
 				rbtree_free(procArr[currPid], &procsFreed);
 				currNumNodes -= procsFreed;
 			}
 		}
+		//printStats();
 	}
 	fclose(file);
 	free(totalVpnArr);
 	free(procArr);
-	
+	free(swapDrive);
+	free(currLine);
 }
