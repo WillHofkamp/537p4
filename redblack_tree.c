@@ -404,7 +404,7 @@ rbtree_node *node_search_helper(int key, rbtree_node *node) {
 	}
 	
 	else {
-		if (node->key == NULL && node->key != 0) {
+		if (node->key < 0) {
 			fprintf(stderr, "Encountered a bad node\n");
 			return NULL;
 		}
@@ -663,7 +663,7 @@ void rbtree_delete_in_range(int key, size_t size) {
 /**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForFIFOHelper(rbtree_node *node, rbtree_node *currLowestTime) {
+void searchForFIFOHelper(rbtree_node *node, rbtree_node *currLowestTime) {
 	if (node != NULL) {
 		searchForFIFOHelper(node->children[LEFT_CHILD], currLowestTime);
 
@@ -687,7 +687,7 @@ rbtree_node *searchForFIFO(rbtree_node *node) {
 /**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForLRUHelper(rbtree_node *node, rbtree_node *currLeastUses) {
+void searchForLRUHelper(rbtree_node *node, rbtree_node *currLeastUses) {
 	if (node != NULL) {
 		searchForLRUHelper(node->children[LEFT_CHILD], currLeastUses);
 
@@ -711,7 +711,7 @@ rbtree_node *searchForLRU(rbtree_node *node) {
 /**
  * Recursive helper. Inorder traversal that finds the node with the lowest number of times accessed
  */
-rbtree_node searchForClockHelper(rbtree_node *node, rbtree_node *searchNode) {
+void searchForClockHelper(rbtree_node *node, rbtree_node *searchNode) {
 	if (node != NULL) {
 		searchForClockHelper(node->children[LEFT_CHILD], searchNode);
 

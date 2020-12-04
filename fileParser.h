@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdint.h>
 #include "queue.h"
 #include "replacementPolicy.h"
 
@@ -29,7 +31,7 @@ typedef struct processInfo {
 	rbtree_node* tree;
 } processInfo;
 
-void parseCommandLine(int argc, const char* argv[]);
+void parseCommandLine(int argc, char* argv[]);
 
 void parseFile();
 

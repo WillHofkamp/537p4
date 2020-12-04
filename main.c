@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include "fileParser.h"
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
 	
 	parseCommandLine(argc, argv);
 	parseFile();

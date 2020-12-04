@@ -19,13 +19,13 @@ int prevPid;
 int totalProgCount = 0;
 char* fileName;
 
-void parseCommandLine(int argc, const char* argv[]) {
+void parseCommandLine(int argc, char* argv[]) {
 	if(argc >=  2) {
 		for(int i = 1; i < argc; i++) {
-			if(strcmp(argv[i], "-p") && argv[i+1] != NULL && isdigit(argv[i+1])) {
+			if(strcmp(argv[i], "-p") && argv[i+1] != NULL && isdigit((uintptr_t)argv[i+1])) {
 				i++;
 				pageSize = atoi(argv[i]);
-			}else if(strcmp(argv[i], "-m") && argv[i+1] != NULL && isdigit(argv[i+1])) {
+			}else if(strcmp(argv[i], "-m") && argv[i+1] != NULL && isdigit((uintptr_t)argv[i+1])) {
 				i++;
 				memorySize = atoi(argv[i]);
 				memorySize = memorySize >> 20;
