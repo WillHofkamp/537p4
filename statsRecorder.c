@@ -46,7 +46,7 @@ int getARP() {
 }
 
 int getTMR() {
-	return totMemoryRefNum;
+	return totMemoryRefNum-1;
 }
 
 int getTPI() {
